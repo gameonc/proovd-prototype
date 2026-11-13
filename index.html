@@ -114,6 +114,7 @@ p{margin:0}
 .btn:active{transform:scale(.985)}
 .btn[disabled]{opacity:.45;cursor:default}
 .btn svg{width:16px;height:16px}
+.screen > .btn{position:sticky;bottom:0;z-index:3;box-shadow:0 -14px 18px 6px var(--ink),0 30px 0 0 var(--ink)}
 .link{align-self:flex-start;color:var(--bone);font-size:14px;border-bottom:1px solid var(--bone);padding-bottom:2px}
 .link.center{align-self:center}
 .pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:6px 9px;background:rgba(9,10,8,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);color:var(--gold)}
@@ -126,6 +127,7 @@ p{margin:0}
 .photo img.in{opacity:1}
 .photo.hero{aspect-ratio:4/3}
 .photo.wide{aspect-ratio:16/9}
+.photo.short{aspect-ratio:21/9}
 .photo.sq{aspect-ratio:1}
 .photo .tl{position:absolute;top:12px;left:12px;z-index:2}
 .photo .tr{position:absolute;top:12px;right:12px;z-index:2}
@@ -151,7 +153,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 
 /* scan ring */
 .scan{display:grid;place-items:center;padding:6px 0}
-.ring{width:176px;height:176px;border:1px solid var(--line);display:grid;place-items:center;position:relative}
+.ring{width:156px;height:156px;border:1px solid var(--line);display:grid;place-items:center;position:relative}
 .ring::before,.ring::after{content:"";position:absolute;width:22px;height:22px;border-color:var(--gold);border-style:solid}
 .ring::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
 .ring::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
@@ -163,7 +165,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 .ring.live .beam{opacity:1;animation:beam 1.3s ease-in-out infinite alternate}
 @keyframes beam{to{top:88%}}
 .ring .core{display:flex;flex-direction:column;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:center}
-.ring .core canvas,.ring .core img.qr{width:96px;height:96px;background:var(--bone);padding:5px;image-rendering:pixelated}
+.ring .core canvas,.ring .core img.qr{width:84px;height:84px;background:var(--bone);padding:5px;image-rendering:pixelated}
 .ring.ok{border-color:rgba(134,199,160,.5)}
 .ring.ok .core{color:var(--ok)}
 .okmark{width:58px;height:58px;border:1.5px solid var(--ok);border-radius:50%;display:grid;place-items:center;color:var(--ok);animation:pop .45s var(--ease)}
@@ -370,7 +372,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     "A few months later, the Spurs called my name at 55.",
     "This is my jersey from that night, signed."
   ];
-  const STORE_KEY = "proovd-demo-v2";
+  const STORE_KEY = "proovd-demo-v3";
 
   // ================= helpers =================
   const $ = (s, r = document) => r.querySelector(s);
@@ -403,7 +405,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     return {
       side:"athlete", a:"home", f:"drop", scannedVisit:false, intro:true,
       verified:false, documented:false, tagged:false, minted:false,
-      bought:false, scanned:false, resold:false,
+      bought:false, scanned:false, resold:false, walletReady:false,
       story:STORY.join(" "), resalePrice:1200,
       tagId:null, tokenId:null, recordHash:null, block:null,
       ledger:[], timeline:[], earnings:{primary:0, royalty:0},
@@ -520,7 +522,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       case "tag": return `
         ${progress(3)}
         <div><div class="eyebrow">03 / Bind the tag</div><h2>Link this exact <span>jersey.</span></h2></div>
-        ${photo("tag","wide","PROOVD tag sewn inside the collar")}
+        ${photo("tag","wide short","PROOVD tag sewn inside the collar")}
         <p class="muted">A woven PROOVD tag is sewn into the collar: a QR code plus a tap chip. Scan it to bind this jersey to its record.</p>
         <div class="scan"><div class="ring ${S.tagged?"ok":""}" id="ring"><span class="c2"></span><span class="beam"></span>
           <div class="core">${S.tagged ? `<span class="okmark">${I.check}</span>Bound` : `${qrImg()}Tag ${SERIAL}`}</div></div></div>
@@ -534,7 +536,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         <div class="list">
           <div class="kv"><span>Edition</span><span>1 of 1</span></div>
           <div class="kv"><span>Price</span><span>${money(PRICE)}</span></div>
-          <div class="kv"><span>Your resale royalty</span><span class="gold">5% on every resale</span></div>
+          <div class="kv"><span>Your resale royalty</span><span class="gold">Proposed 5% on eligible PROOVD resales</span></div>
         </div>
         <div><div class="eyebrow" style="margin-bottom:10px">Each sale</div>
           <div class="split"><span style="flex:70;background:var(--gold)"></span><span style="flex:30;background:var(--bone)"></span></div>
@@ -597,12 +599,20 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         <div class="list">
           <div class="kv"><span>Evidence</span><span>4 photos · signature · tag</span></div>
           <div class="kv"><span>Record</span><span class="mono">${SERIAL}</span></div>
-          <div class="kv"><span>Athlete royalty</span><span>5% on every resale</span></div>
+          <div class="kv"><span>Athlete royalty</span><span>Proposed 5% on eligible PROOVD resales</span></div>
         </div>
         ${S.bought ? `<button class="btn" data-go="fan:record">${S.resold ? "Sold · view record" : "You own this · view record"} ${I.arrow}</button>`
           : `<div class="price"><b>${money(PRICE)}</b><span class="small muted">Ships with its PROOVD tag</span></div><button class="btn" data-go="fan:checkout">Buy now</button>`}`;
 
-      case "checkout": return `
+      case "checkout":
+        if (!S.walletReady) return `
+          <div><div class="eyebrow">Demo collection account</div><h2>A home for <span>your collection.</span></h2></div>
+          ${photo("hero","hero","Senior Night jersey demo collectible")}
+          <p class="muted">In the planned product, sign in with email or Google to create your wallet. This preview uses a sample collector account.</p>
+          <button class="btn" id="createDemoWallet">Continue with demo account ${I.arrow}</button>
+          <p class="small muted">No real wallet is created. No email, password or payment details are collected.</p>
+          <button class="link center" data-go="fan:drop">Back to the jersey</button>`;
+        return `
         <div><div class="eyebrow">Checkout</div><h2>One item. <span>One record.</span></h2></div>
         <div style="display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--line)">
           ${photo("hero","sq","Jersey")}<div><b>Senior Night Jersey</b><div class="small muted">Signed · 1 of 1 · ${SERIAL}</div></div><b style="font-family:var(--serif);font-weight:400;font-size:20px">${money(PRICE)}</b></div>
@@ -613,13 +623,13 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
             <div><span><i style="background:var(--bone)"></i>PROOVD</span><b>${money(PRICE*(1-ATH))}</b></div>
           </div></div>
         <div class="list"><div class="kv"><span>Payment</span><span>Demo card •••• 4242</span></div><div class="kv"><span>Ship to</span><span>Miami, FL</span></div></div>
-        <button class="btn" id="pay">Pay ${money(PRICE)}</button>
-        <p class="small muted" style="text-align:center">Demo checkout. No card is charged.</p>`;
+        <button class="btn" id="pay">Simulate purchase · ${money(PRICE)}</button>
+        <p class="small muted" style="text-align:center">Demo checkout and wallet. No money moves. Splits are illustrative; fees, shipping and taxes are not modeled.</p>`;
 
       case "arrived": return `
         <div><div class="eyebrow">Delivered</div><h2>Your jersey <span>arrived.</span></h2></div>
         ${photo("box","hero","Jersey arriving in a black PROOVD presentation box")}
-        <p class="muted">Before you frame it, scan the collar tag. It proves this is the exact jersey on record ${SERIAL} and moves the record into your name.</p>
+        <p class="muted">Before you frame it, scan the collar tag to confirm it's the jersey on record ${SERIAL}. In the real product the record moves only after an authorized purchase, never from a scan alone.</p>
         <button class="btn" data-go="fan:scan">Verify my jersey ${I.arrow}</button>`;
 
       case "scan":
@@ -629,7 +639,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           <p class="muted">Buy the drop first, then verify it here when it arrives. Or scan the QR on the desktop page with your real phone.</p>
           <button class="btn" data-go="fan:drop">Go to the drop ${I.arrow}</button>`;
         return `
-        ${photo("tap","wide","Phone scanning the PROOVD tag in the collar")}
+        ${photo("tap","wide short","Phone scanning the PROOVD tag in the collar")}
         <div><div class="eyebrow">Verify</div><h2>${S.scanned ? `<span>Authentic.</span>` : `Scan the tag <span>in the collar.</span>`}</h2></div>
         ${S.scanned ? `
           <div class="checks">
@@ -643,8 +653,8 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           <button class="btn" id="scanBtn">Scan tag</button>`}`;
 
       case "record": return `
-        ${S.scannedVisit ? `<div class="banner-scan">${I.shield}<span>You scanned a PROOVD tag. This jersey is authentic.</span></div>` : ""}
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px"><div><div class="eyebrow">Record ${SERIAL}</div><h2>Chain <span>of title.</span></h2></div><span class="pill ok">${I.check}Authentic</span></div>
+        ${S.scannedVisit ? `<div class="banner-scan">${I.shield}<span>You opened a sample item record. Viewing does not establish authenticity or transfer ownership.</span></div>` : ""}
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px"><div><div class="eyebrow">Record ${SERIAL}</div><h2>Chain <span>of title.</span></h2></div><span class="pill ok">${I.check}Demo record</span></div>
         ${photo("hero","hero","The jersey on record")}
         <button class="link" data-twin>View digital twin ↗</button>
         <div class="tl">${S.timeline.map((t,i) => `
@@ -656,7 +666,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           <div class="kv"><span>Tag</span><span class="mono">${S.tagId}</span></div>
           <div class="kv"><span>Record hash</span><span class="mono">${short(S.recordHash)}</span></div>
         </div>
-        ${S.scannedVisit ? `<a class="btn" style="text-decoration:none" href="https://getproovd.com">Learn about PROOVD ${I.arrow}</a>`
+        ${S.scannedVisit ? `<button class="btn" data-go="fan:drop">Explore this collectible ${I.arrow}</button>`
           : S.resold ? `<button class="btn" data-go="athlete:dash">See what Cady earned ${I.arrow}</button>`
           : S.scanned ? `<button class="btn" data-go="fan:resell">Resell this jersey</button>` : `<button class="btn" data-go="fan:scan">Verify my jersey ${I.arrow}</button>`}`;
 
@@ -678,7 +688,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
             <div><span><i style="background:var(--gold)"></i>Cady's royalty · 5%</span><b class="gold">${money(roy)}</b></div>
             <div><span><i style="background:var(--gold-d)"></i>PROOVD fee · proposed 10%</span><b>${money(fee)}</b></div>
           </div></div>
-        <p class="small muted">Only items with a live PROOVD record can be listed. A counterfeit has no record to transfer.</p>
+        <p class="small muted">Illustrative supported resale. A real sale requires seller authorization, item verification and a physical delivery process.</p>
         <button class="btn" id="list">List for ${money(r)}</button>`;
       }
 
@@ -696,7 +706,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
             <div class="kv"><span>New owner</span><span>Collector #2 · Chicago, IL</span></div>
             <div class="kv"><span>Record</span><span class="mono">${SERIAL} · updated</span></div>
           </div></div>
-        <p class="muted">The jersey changed hands. The story, the evidence and the athlete's cut went with it. Nobody had to re-authenticate anything.</p>
+        <p class="muted">This simulation updates the digital record and payout breakdown. A real resale also needs item verification and confirmed physical delivery.</p>
         <button class="btn" data-go="athlete:dash">See Cady's dashboard ${I.arrow}</button>
         <button class="link center" data-go="fan:record">See the updated record</button>`;
       }
@@ -738,7 +748,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     });
     on("tapTag", async e => {
       if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Reading tag…";
-      el.querySelector("#ring").classList.add("live"); await wait(1800);
+      const rg = el.querySelector("#ring"); rg.classList.add("live"); try { rg.scrollIntoView({block:"center", behavior:"smooth"}); } catch(e){} await wait(1800);
       S.tagId = "CHIP-" + hex(3).toUpperCase(); S.tagged = true; busy = false;
       log("Tag bound", S.tagId + " → " + SERIAL); lastDir = 0; render();
     });
@@ -756,21 +766,27 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     on("mintBtn", () => { go("athlete","mint"); runMint(); });
     on("skipMint", () => { quickMint(); toast("Finished record " + SERIAL + " loaded"); go("fan","drop"); });
     on("playStory", e => playStory(el, e.currentTarget));
+    on("createDemoWallet", () => {
+      S.walletReady = true; log("Demo account ready", "Sample collector account; no real wallet created"); render();
+    });
     on("pay", async e => {
+      if (!S.walletReady || S.bought) return;
       if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Processing…"; await wait(1300);
       S.bought = true; S.earnings.primary = PRICE*ATH; busy = false;
       log("Primary sale", money(PRICE) + " · " + money(PRICE*ATH) + " to Cady · " + money(PRICE*(1-ATH)) + " to PROOVD");
       toast("Demo payment: " + money(PRICE*ATH) + " goes to Cady."); go("fan","arrived");
     });
     on("scanBtn", async e => {
+      if (!S.bought || S.scanned || S.resold) return;
       if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Reading…"; askMotion();
-      el.querySelector("#ring2").classList.add("live"); await wait(1700);
+      const rg2 = el.querySelector("#ring2"); rg2.classList.add("live"); try { rg2.scrollIntoView({block:"center", behavior:"smooth"}); } catch(e){} await wait(1700);
       S.scanned = true; busy = false;
       S.timeline.push({title:"Owned by Collector #1", sub:"Bought for " + money(PRICE) + " · verified by tag scan · " + stamp(), hash:hex(32)});
       log("Ownership transfer", "Cady Lalanne → Collector #1 · tag matched record"); lastDir = 0; render();
       openHolo({reveal:true, title:"Authentic. <span>And now yours.</span>", cta:"See what was verified"});
     });
     on("list", async e => {
+      if (!S.bought || !S.scanned || S.resold) return;
       if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Matching a buyer…"; await wait(1600);
       const roy = S.resalePrice*ROY; S.resold = true; S.earnings.royalty += roy; busy = false;
       S.timeline.push({title:"Owned by Collector #2", sub:"Resold for " + money(S.resalePrice) + " · " + money(roy) + " royalty to Cady · " + stamp(), hash:hex(32)});
@@ -851,7 +867,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   }
   function openHolo(opts){
     if (closeHolo) closeHolo();
-    const owner = S.resold ? "Collector #2" : S.scannedVisit ? "Verified holder" : S.scanned ? "Collector #1" : opts.preview ? "Its collector" : "Cady Lalanne";
+    const owner = S.resold ? "Collector #2" : S.scanned ? "Collector #1" : "Cady Lalanne";
     const hashShown = S.recordHash ? short(S.recordHash) : "3f9a41c2…d07be5";
     const tagShown = S.tagId || "CHIP-A41F07";
     const bg = document.createElement("div");
@@ -881,14 +897,14 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
             </div>
             <div class="face back">
               <div class="foil"></div><div class="glare"></div>
-              <div style="display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2"><span class="word" style="font-size:17px">PROOVD</span><span class="pill ok">${I.check}Authentic</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2"><span class="word" style="font-size:17px">PROOVD</span><span class="pill ok">${I.check}Demo record</span></div>
               <div class="qrw" style="position:relative;z-index:2">${qrImg("")}</div>
               <div class="list">
                 <div class="kv"><span>Record</span><span class="mono">${SERIAL}</span></div>
                 <div class="kv"><span>Signed by</span><span>Cady Lalanne</span></div>
                 <div class="kv"><span>Held by</span><span>${owner}</span></div>
                 <div class="kv"><span>Tag</span><span class="mono">${esc(tagShown)}</span></div>
-                <div class="kv"><span>Owners</span><span>${opts.preview ? 1 : Math.max(0, S.timeline.length - 1)}</span></div>
+                <div class="kv"><span>Owners</span><span>${Math.max(0, S.timeline.length - 1)}</span></div>
               </div>
             </div>
           </div>
@@ -950,13 +966,8 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   function handleHash(){
     if (/^#r\/PRV-0001/i.test(location.hash)){
       if (!S.minted) quickMint();
-      if (!S.bought){ S.bought = true; S.earnings.primary = PRICE*ATH;
-        log("Primary sale", money(PRICE) + " · " + money(PRICE*ATH) + " to Cady · " + money(PRICE*(1-ATH)) + " to PROOVD"); }
-      if (!S.scanned){ S.scanned = true;
-        S.timeline.push({title:"Owned by Collector #1", sub:"Bought for " + money(PRICE) + " · verified by tag scan · " + stamp(), hash:hex(32)});
-        log("Ownership transfer", "Cady Lalanne → Collector #1 · tag matched record"); }
       S.intro = false; S.scannedVisit = true; S.side = "fan"; S.f = "record"; lastDir = 0; render();
-      openHolo({reveal:true, title:"This jersey is <span>authentic.</span>", cta:"View the full record"});
+      openHolo({reveal:true, title:"One jersey. <span>Its story.</span>", cta:"View the full record"});
       try { history.replaceState(null, "", location.pathname); } catch(e){}
       return true;
     }

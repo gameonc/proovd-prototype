@@ -224,7 +224,7 @@ textarea:focus{outline:2px solid var(--gold-soft)}
     $("#ledgerCount").textContent = S.ledger.length;
   }
 
-  const IMG = {"hero": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032636_a7130cb2-b937-42dd-9c29-97c477757733.png", "back": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032637_817114d5-6d21-4747-8e80-538617de76e4.png", "sig": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032637_1b31c497-a5fc-4147-afea-c113a8fb1075.png", "tag": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032637_5d5edcd8-05d9-4d4a-9e90-7e286f51ddd9.png", "tap": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032637_2988e6c9-0c44-4ed6-94d8-fe0d5896a736.png", "arena": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032638_e1084515-1da1-406f-93e7-a10fa330b11d.png"};
+  const IMG = {"hero": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032636_a7130cb2-b937-42dd-9c29-97c477757733.png", "back": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032637_817114d5-6d21-4747-8e80-538617de76e4.png", "sig": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032637_1b31c497-a5fc-4147-afea-c113a8fb1075.png", "tag": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_034248_aa81fd71-0bde-4673-9af5-84883eef84d2.png", "tap": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_034248_d33c7887-60d0-4460-b91d-562b229b9798.png", "arena": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032638_e1084515-1da1-406f-93e7-a10fa330b11d.png"};
   // photo with drawn fallback: img sits over the svg; if it fails to load it removes itself
   const photo = (k, alt) => `<img class="ph" src="${IMG[k]}" alt="${alt}" loading="eager" decoding="async" onerror="this.remove()">`;
   document.documentElement.style.setProperty("--arena", `url("${IMG.arena}")`);
@@ -309,7 +309,7 @@ textarea:focus{outline:2px solid var(--gold-soft)}
         ${stepper(3)}
         <div><div class="eyebrow">Step 3 · Link the physical tag</div><h2>Bind the jersey to its record.</h2></div>
         <div class="banner">${photo("tag","Authentication tag sewn into the collar")}</div>
-        <p class="muted">A PROOVD tag is sewn into the jersey. Hold your phone to it to link this exact item.</p>
+        <p class="muted">A PROOVD tag is sewn into the collar: a QR code plus a tap chip. Scan it to link this exact jersey.</p>
         <div class="tap"><div class="ring ${S.tagged?"ok":""}" id="ring"><div class="core">${S.tagged?okIcon+"<span>Linked</span>":nfc+"<span>Hold near tag</span>"}</div></div></div>
         ${S.tagged
           ? `<div class="card"><div class="kv"><span>Tag ID</span><span class="mono">${S.tagId}</span></div><div class="kv"><span>Signature</span><span style="color:var(--ok)">Valid · cloned tags fail</span></div></div><button class="btn" data-go="a:terms">Continue</button>`
@@ -425,8 +425,8 @@ textarea:focus{outline:2px solid var(--gold-soft)}
 
       case "scan": return `
         <div class="banner">${photo("tap","Phone tapping the jersey tag")}</div>
-        <div><div class="eyebrow">Verify</div><h2 id="scanTitle">${S.scanned?"Authentic.":"Hold your phone to the tag."}</h2></div>
-        <div class="tap"><div class="ring ${S.scanned?"ok":""}" id="ring2"><div class="core">${S.scanned?okIcon+"<span>Verified</span>":nfc+"<span>Tag inside collar</span>"}</div></div></div>
+        <div><div class="eyebrow">Verify</div><h2 id="scanTitle">${S.scanned?"Authentic.":"Scan the tag in the collar."}</h2></div>
+        <div class="tap"><div class="ring ${S.scanned?"ok":""}" id="ring2"><div class="core">${S.scanned?okIcon+"<span>Verified</span>":nfc+"<span>Scan the collar tag</span>"}</div></div></div>
         ${S.scanned ? `
           <div class="card" id="vchecks">
             ${check("Tag signature valid","Tag " + S.tagId + " is genuine", true)}

@@ -224,7 +224,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 .holo-enter{display:grid;place-items:center;transform-style:preserve-3d}
 .holo-bg.reveal .holo-enter{animation:holoIn 1.25s var(--ease) both}
 @keyframes holoIn{0%{opacity:0;transform:translateY(60px) scale(.55) rotateY(-210deg)}35%{opacity:1}100%{opacity:1;transform:none}}
-.holo-card{width:min(78cqw,70cqh,310px);aspect-ratio:5/7;position:relative;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));cursor:pointer;-webkit-tap-highlight-color:transparent;will-change:transform}
+.holo-card{width:min(78vw,300px);width:min(78cqw,70cqh,310px);aspect-ratio:5/7;position:relative;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));cursor:pointer;-webkit-tap-highlight-color:transparent;will-change:transform}
 .holo-card::after{content:"";position:absolute;left:8%;right:8%;bottom:-9%;height:8%;background:radial-gradient(ellipse,rgba(201,173,101,.5),transparent 70%);filter:blur(10px);transform:translateZ(-40px)}
 .holo-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .8s var(--ease)}
 .holo-card.flipped .holo-inner{transform:rotateY(180deg)}
@@ -287,7 +287,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   <div class="phone" id="phone">
     <header class="top">
       <span class="word">PROOVD</span>
-      <span class="tag-demo">Demo</span>
+      <span class="tag-demo">Demo · simulated</span>
     </header>
     <nav class="mode" aria-label="App side">
       <button type="button" data-side="athlete">Athlete studio</button>
@@ -369,22 +369,33 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       ledger:[], timeline:[], earnings:{primary:0, royalty:0}
     };
   }
+  const ORDER_A = ["home","verify","document","tag","terms","mint","dash"];
+  const ORDER_F = ["drop","checkout","arrived","scan","record","collection","resell","sold"];
   let S = load() || fresh();
   let busy = false, lastDir = 1;
 
-  function load(){ try { const v = JSON.parse(localStorage.getItem(STORE_KEY)); return v && typeof v === "object" ? Object.assign(fresh(), v) : null; } catch(e){ return null; } }
+  function load(){
+    try {
+      const v = JSON.parse(localStorage.getItem(STORE_KEY));
+      if (!v || typeof v !== "object" || !Array.isArray(v.ledger) || !Array.isArray(v.timeline) || !v.earnings || typeof v.earnings !== "object") return null;
+      if (!ORDER_A.includes(v.a) || !ORDER_F.includes(v.f) || (v.side !== "athlete" && v.side !== "fan")) return null;
+      delete v.scannedVisit;
+      for (const k of ["tagId","tokenId","recordHash"]) if (v[k] != null) v[k] = String(v[k]).replace(/[^A-Za-z0-9-]/g, "").slice(0, 80);
+      v.block = Number(v.block) || null; v.resalePrice = [900,1200,1500].includes(v.resalePrice) ? v.resalePrice : 1200;
+      v.earnings = {primary: Number(v.earnings.primary) || 0, royalty: Number(v.earnings.royalty) || 0};
+      return Object.assign(fresh(), v);
+    } catch(e){ return null; }
+  }
   function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e){} }
 
-  function log(type, detail){
+  const newBlock = () => 8412100 + (parseInt(hex(2),16) % 9000);
+  function log(type, detail, block){
     const base = S.block || 8412000;
-    S.ledger.unshift({type, detail, hash:hex(32), block: base + S.ledger.length*4 + 1, at: stamp()});
+    S.ledger.unshift({type, detail, hash:hex(32), block: block || base + S.ledger.length*4 + 1, at: stamp()});
     $("#ledgerCount").textContent = S.ledger.length;
   }
 
   // ================= render =================
-  const ORDER_A = ["home","verify","document","tag","terms","mint","dash"];
-  const ORDER_F = ["drop","checkout","arrived","scan","record","collection","resell","sold"];
-
   function go(side, screen){
     const order = side === "athlete" ? ORDER_A : ORDER_F;
     const cur = side === "athlete" ? S.a : S.f;
@@ -421,7 +432,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         </div>
         ${S.minted
           ? `<button class="btn" data-go="athlete:dash">Open dashboard ${I.arrow}</button><button class="link center" data-go="fan:drop">View it as a collector ↗</button>`
-          : `<button class="btn" data-go="athlete:verify">Tokenize this item ${I.arrow}</button><p class="small muted" style="text-align:center">Four steps · about a minute</p>`}`;
+          : `<button class="btn" data-go="athlete:verify">Tokenize this item ${I.arrow}</button><p class="small muted" style="text-align:center">Five steps · about a minute</p>`}`;
 
       case "verify": return `
         ${progress(1)}
@@ -443,7 +454,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           ${photo("tag","","Collar tag", `<span class="cap">Tag</span>`)}
         </div>
         <div class="list">
-          <div class="kv"><span>Item</span><span>Home jersey · No. 25</span></div>
+          <div class="kv"><span>Item</span><span>Senior Night jersey · No. 25</span></div>
           <div class="kv"><span>Occasion</span><span>Senior Night · Mullins Center</span></div>
           <div class="kv"><span>Type</span><span>Team-issued, ceremonial</span></div>
           <div class="kv"><span>Signed</span><span>Gold marker · Cady Lalanne</span></div>
@@ -491,7 +502,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         <div class="grid2"><div><b>${money(S.earnings.primary)}</b><span>First sale · 70%</span></div><div><b>${money(S.earnings.royalty)}</b><span>Royalties · 5%</span></div></div>
         <div class="list">
           <div class="kv"><span>Record</span><span class="mono">${SERIAL}</span></div>
-          <div class="kv"><span>Status</span><span class="${S.minted?"okc":""}">${S.resold?"Resold · owner #2":S.scanned?"Owned by collector #1":S.bought?"Sold · in transit":S.minted?"Live":"Draft"}</span></div>
+          <div class="kv"><span>Status</span><span class="${S.minted?"okc":""}">${S.resold?"Resold · owner #2":S.scanned?"Owned by Collector #1":S.bought?"Sold · in transit":S.minted?"Live":"Draft"}</span></div>
           <div class="kv"><span>Owners so far</span><span>${Math.max(0, S.timeline.length - 1)}</span></div>
         </div>
         ${!S.minted ? `<button class="btn" data-go="athlete:verify">Tokenize this item ${I.arrow}</button>`
@@ -525,7 +536,6 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 
     switch (S.f){
       case "drop": return `
-        ${S.scannedVisit ? "" : ""}
         ${photo("hero","hero","Signed ivory number 25 jersey in a black shadow box", `<span class="pill ok tl">${I.check}Verified athlete</span><span class="pill tr">1 of 1</span>`)}
         <div><div class="eyebrow">Cady Lalanne · Spurs pick 55</div><h2>Senior Night Jersey, <span>signed.</span></h2></div>
         ${storyCard()}
@@ -534,7 +544,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           <div class="kv"><span>Record</span><span class="mono">${SERIAL}</span></div>
           <div class="kv"><span>Athlete royalty</span><span>5% on every resale</span></div>
         </div>
-        ${S.bought ? `<button class="btn" data-go="fan:record">You own this · view record ${I.arrow}</button>`
+        ${S.bought ? `<button class="btn" data-go="fan:record">${S.resold ? "Sold · view record" : "You own this · view record"} ${I.arrow}</button>`
           : `<div class="price"><b>${money(PRICE)}</b><span class="small muted">Ships with its PROOVD tag</span></div><button class="btn" data-go="fan:checkout">Buy now</button>`}`;
 
       case "checkout": return `
@@ -571,7 +581,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
             ${check("Tag signature valid", "Chip " + S.tagId + " is genuine", "done")}
             ${check("Matches " + SERIAL, "Photos, signature and story on file", "done")}
             ${check("Signed by Cady Lalanne", "Verified athlete · NIL permission on file", "done")}
-            ${check("Ownership moved to you", "Transfer written to the record", "done")}
+            ${check(S.resold ? "Ownership moved to Collector #2" : "Ownership moved to you", S.resold ? "You resold it · transfer written to the record" : "Transfer written to the record", "done")}
           </div>
           <button class="btn" data-go="fan:record">View the full record ${I.arrow}</button>`
         : `<div class="scan"><div class="ring" id="ring2"><span class="c2"></span><span class="beam"></span><div class="core">${qrImg()}Hold steady</div></div></div>
@@ -626,6 +636,8 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           <div class="list">
             <div class="kv"><span>Sale price</span><span>${money(S.resalePrice)}</span></div>
             <div class="kv"><span>Royalty to Cady Lalanne</span><span class="gold">${money(roy)}</span></div>
+            <div class="kv"><span>PROOVD fee · proposed 10%</span><span>${money(S.resalePrice*PFEE)}</span></div>
+            <div class="kv"><span>You received</span><span>${money(S.resalePrice - roy - S.resalePrice*PFEE)}</span></div>
             <div class="kv"><span>New owner</span><span>Collector #2 · Chicago, IL</span></div>
             <div class="kv"><span>Record</span><span class="mono">${SERIAL} · updated</span></div>
           </div></div>
@@ -637,11 +649,15 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     return "";
   }
 
+  function storyLines(){
+    const parts = (String(S.story || "").match(/[^.!?]+[.!?]*/g) || []).map(x => x.trim()).filter(Boolean).slice(0, 6);
+    return parts.length ? parts : STORY;
+  }
   function storyCard(compact){
     return `<div class="story" style="${compact?"min-height:170px":""}">
       ${photo("arena","","Empty arena under a single spotlight")}
-      <div class="story-bars" id="sbars">${STORY.map(() => "<span><i></i></span>").join("")}</div>
-      <p class="quote" id="quote">“${esc(STORY[0])}”</p>
+      <div class="story-bars" id="sbars">${storyLines().map(() => "<span><i></i></span>").join("")}</div>
+      <p class="quote" id="quote">“${esc(storyLines()[0])}”</p>
       <div class="story-meta"><span class="eyebrow" style="color:var(--muted)">In Cady's words</span><button class="play" id="playStory">${I.play}Play story</button></div>
     </div>`;
   }
@@ -651,7 +667,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   function bind(el){
     el.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { if (busy) return; const [side, scr] = b.dataset.go.split(":"); if (side === "fan") S.scannedVisit = false; go(side, scr); }));
     el.querySelectorAll("[data-twin]").forEach(b => b.addEventListener("click", () => { if (busy) return; askMotion(); openHolo({}); }));
-    el.querySelectorAll("[data-price]").forEach(b => b.addEventListener("click", () => { S.resalePrice = +b.dataset.price; lastDir = 0; render(); }));
+    el.querySelectorAll("[data-price]").forEach(b => b.addEventListener("click", () => { if (busy) return; S.resalePrice = +b.dataset.price; lastDir = 0; render(); }));
     const on = (id, fn) => { const x = el.querySelector("#" + id); if (x) x.addEventListener("click", fn); };
 
     on("runVerify", async e => {
@@ -662,7 +678,8 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     });
     on("saveDoc", () => {
       const t = el.querySelector("#story"); S.story = (t && t.value.trim()) || STORY.join(" ");
-      S.documented = true; log("Evidence sealed", "4 photos · signature · story"); go("athlete","tag");
+      if (!S.documented) log("Evidence sealed", "4 photos · signature · story");
+      S.documented = true; go("athlete","tag");
     });
     on("tapTag", async e => {
       if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Reading tag…";
@@ -677,7 +694,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Processing…"; await wait(1300);
       S.bought = true; S.earnings.primary = PRICE*ATH; busy = false;
       log("Primary sale", money(PRICE) + " · " + money(PRICE*ATH) + " to Cady · " + money(PRICE*(1-ATH)) + " to PROOVD");
-      toast("Paid. " + money(PRICE*ATH) + " went straight to Cady."); go("fan","arrived");
+      toast("Demo payment: " + money(PRICE*ATH) + " goes to Cady."); go("fan","arrived");
     });
     on("scanBtn", async e => {
       if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Reading…"; askMotion();
@@ -700,9 +717,10 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     if (!q) return;
     btn.innerHTML = I.pause + "Playing";
     bars.forEach(b => { b.style.transition = "none"; b.style.width = "0"; });
-    for (let i = 0; i < STORY.length; i++){
+    const lines = storyLines();
+    for (let i = 0; i < lines.length; i++){
       if (run !== storyRun || !document.body.contains(q)) return;
-      q.style.opacity = 0; await wait(250); q.textContent = "“" + STORY[i] + "”"; q.style.opacity = 1;
+      q.style.opacity = 0; await wait(250); q.textContent = "“" + lines[i] + "”"; q.style.opacity = 1;
       const b = bars[i]; if (b){ void b.offsetWidth; b.style.transition = "width 2.4s linear"; b.style.width = "100%"; }
       await wait(2500);
     }
@@ -712,12 +730,12 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   function quickMint(){
     if (!S.tagId) S.tagId = "CHIP-" + hex(3).toUpperCase();
     S.verified = S.documented = S.tagged = true;
-    S.tokenId = SERIAL + "-" + hex(3).toUpperCase(); S.recordHash = hex(32); S.block = 8412000 + (parseInt(hex(2),16) % 9000);
+    S.tokenId = SERIAL + "-" + hex(3).toUpperCase(); S.recordHash = hex(32); S.block = S.block || newBlock();
     S.minted = true;
     S.timeline = [{title:"Created by Cady Lalanne", sub:"Tokenized · 1 of 1 · " + stamp(), hash:S.recordHash}];
     if (!S.ledger.some(l => l.type === "Record created")){
       if (!S.ledger.length){ log("Athlete verified","Cady Lalanne · identity, right to sell, NIL permission"); log("Evidence sealed","4 photos · signature · story"); log("Tag bound", S.tagId + " → " + SERIAL); }
-      log("Record created", S.tokenId + " · block " + S.block.toLocaleString("en-US"));
+      log("Record created", S.tokenId + " · 1 of 1", S.block);
     }
   }
 
@@ -725,7 +743,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     if (busy) return; busy = true;
     const c = $("#console"), bar = $("#mintBar"); if (!c){ busy = false; return; }
     const line = (t, k="") => { const d = document.createElement("div"); d.className = k; d.textContent = t; c.appendChild(d); while (c.children.length > 9) c.removeChild(c.firstChild); };
-    const blk = (8412000 + (parseInt(hex(2),16) % 9000)).toLocaleString("en-US");
+    S.block = S.block || newBlock(); const blk = S.block.toLocaleString("en-US");
     const steps = [
       ["› hashing 4 photos + signature",""],["  sha256 " + hex(12),""],
       ["› sealing story + athlete attestation",""],["  sha256 " + hex(12),""],
@@ -768,7 +786,11 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     const owner = S.resold ? "Collector #2" : S.scannedVisit ? "Verified holder" : S.scanned ? "Collector #1" : "Cady Lalanne";
     const bg = document.createElement("div");
     bg.className = "holo-bg" + (opts.reveal ? " reveal" : "");
-    bg.setAttribute("role","dialog"); bg.setAttribute("aria-label","Digital twin of record " + SERIAL);
+    bg.setAttribute("role","dialog"); bg.setAttribute("aria-modal","true"); bg.setAttribute("aria-label","Digital twin of record " + SERIAL);
+    const opener = document.activeElement;
+    const behind = [...document.querySelectorAll("#phone > .top, #phone > .mode, #phone > .viewport, #phone > .tabs, #phone > .foot")];
+    behind.forEach(n => n.inert = true);
+    bg.addEventListener("pointerdown", askMotion, {once:true});
     bg.innerHTML = `
       <div class="holo-rays"></div><div class="holo-flash"></div>
       <div class="holo-head"><span class="eyebrow">Digital twin · ${SERIAL}</span><button class="link" id="holoClose">Close</button></div>
@@ -795,7 +817,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
                 <div class="kv"><span>Record</span><span class="mono">${SERIAL}</span></div>
                 <div class="kv"><span>Signed by</span><span>Cady Lalanne</span></div>
                 <div class="kv"><span>Held by</span><span>${owner}</span></div>
-                <div class="kv"><span>Tag</span><span class="mono">${S.tagId || "—"}</span></div>
+                <div class="kv"><span>Tag</span><span class="mono">${esc(S.tagId || "—")}</span></div>
                 <div class="kv"><span>Owners</span><span>${Math.max(0, S.timeline.length - 1)}</span></div>
               </div>
             </div>
@@ -809,11 +831,11 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     const card = $("#holoCard", bg), scene = $("#holoScene", bg);
     const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     const clamp = v => Math.max(-1, Math.min(1, v));
-    let tx = reduce ? 0.25 : 0, ty = reduce ? -0.15 : 0, cx = 0, cy = 0, lastInput = -1e9, base = null, alive = true, raf = 0;
+    let tx = reduce ? 0.25 : 0, ty = reduce ? -0.15 : 0, cx = 0, cy = 0, lastInput = -1e9, lastPointer = -1e9, base = null, alive = true, raf = 0;
     const setTarget = (x, y) => { tx = clamp(x); ty = clamp(y); lastInput = performance.now(); };
-    const onPointer = e => { const r = scene.getBoundingClientRect(); setTarget(((e.clientX - r.left) / r.width - 0.5) * 2.2, ((e.clientY - r.top) / r.height - 0.5) * 2.2); };
+    const onPointer = e => { lastPointer = performance.now(); const r = scene.getBoundingClientRect(); setTarget(((e.clientX - r.left) / r.width - 0.5) * 2.2, ((e.clientY - r.top) / r.height - 0.5) * 2.2); };
     const onTilt = e => {
-      if (e.gamma == null || e.beta == null) return;
+      if (e.gamma == null || e.beta == null || performance.now() - lastPointer < 1500) return;
       if (!base) base = {b:e.beta, g:e.gamma};
       setTarget((e.gamma - base.g) / 22, (e.beta - base.b) / 22);
     };
@@ -844,7 +866,8 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     function close(){
       if (!alive) return; alive = false; cancelAnimationFrame(raf);
       window.removeEventListener("deviceorientation", onTilt); document.removeEventListener("keydown", onKey);
-      bg.remove(); closeHolo = null;
+      bg.remove(); closeHolo = null; behind.forEach(n => n.inert = false);
+      try { if (opener && document.body.contains(opener)) opener.focus({preventScroll:true}); } catch(e){}
     }
     closeHolo = close;
     $("#holoClose", bg).addEventListener("click", close);
@@ -856,8 +879,11 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   function handleHash(){
     if (/^#r\/PRV-0001/i.test(location.hash)){
       if (!S.minted) quickMint();
-      if (!S.bought){ S.bought = true; }
-      if (!S.scanned){ S.scanned = true; S.timeline.push({title:"Verified by tag scan", sub:"Authentic · " + stamp(), hash:hex(32)}); log("Tag scanned", SERIAL + " · authentic"); }
+      if (!S.bought){ S.bought = true; S.earnings.primary = PRICE*ATH;
+        log("Primary sale", money(PRICE) + " · " + money(PRICE*ATH) + " to Cady · " + money(PRICE*(1-ATH)) + " to PROOVD"); }
+      if (!S.scanned){ S.scanned = true;
+        S.timeline.push({title:"Owned by Collector #1", sub:"Bought for " + money(PRICE) + " · verified by tag scan · " + stamp(), hash:hex(32)});
+        log("Ownership transfer", "Cady Lalanne → Collector #1 · tag matched record"); }
       S.scannedVisit = true; S.side = "fan"; S.f = "record"; lastDir = 0; render();
       openHolo({reveal:true, title:"This jersey is <span>authentic.</span>", cta:"View the full record"});
       try { history.replaceState(null, "", location.pathname); } catch(e){}
@@ -876,6 +902,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   $("#restartBtn").addEventListener("click", () => { if (busy) return; S = fresh(); try { localStorage.removeItem(STORE_KEY); } catch(e){} const s = $(".sheet-bg"); if (s) s.remove(); if (closeHolo) closeHolo(); lastDir = -1; render(); });
   const sq = qrDataURL(RECORD_URL, 4); if (sq) $("#sideQr").innerHTML = `<img src="${sq}" alt="QR code that opens record ${SERIAL}" width="84" height="84">`;
   window.addEventListener("hashchange", handleHash);
+  if (S.a === "mint" && !S.minted) S.a = "terms";
   if (!handleHash()) render();
 })();
 </script>

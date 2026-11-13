@@ -3,605 +3,736 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>PROOVD Prototype</title>
-<meta name="description" content="PROOVD interactive prototype: tokenize a signed athlete jersey, buy it, verify it, resell it.">
-<meta name="theme-color" content="#0a0a0a">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Rubik:wght@400;500;600;700&display=swap">
+<title>PROOVD — Interactive Demo</title>
+<meta name="description" content="PROOVD interactive demo: tokenize a signed athlete jersey, buy it, verify it, resell it.">
+<meta name="theme-color" content="#090a08">
+<meta name="robots" content="noindex">
 <style>
 :root{
   color-scheme:dark;
-  --ink:#0a0a0a; --panel:#141310; --panel2:#1b1a16; --line:#2c2a24; --bone:#f5f2ec; --muted:#a9a49a;
-  --gold:#c9a961; --gold-soft:#8f7a48; --ok:#5fbf7f; --maroon:#7d1f24;
-  --display:"Playfair Display",Georgia,"Times New Roman",serif;
-  --body:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --ink:#090a08; --panel:#10110e; --panel2:#151612; --line:rgba(201,173,101,.22); --line2:rgba(242,241,236,.10);
+  --bone:#f2f1ec; --muted:#b7b7ad; --dim:#7d7c74; --gold:#c9ad65; --gold-d:#8f7b47; --ok:#86c7a0;
+  --serif:Georgia,"Times New Roman",serif;
+  --sans:"Helvetica Neue",Helvetica,Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{background:var(--ink);color:var(--bone);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
-button{font:inherit;color:inherit;cursor:pointer}
-.stage{min-height:100dvh;display:flex;align-items:center;justify-content:center;gap:56px;padding:24px max(16px,env(safe-area-inset-left,0px)) 24px max(16px,env(safe-area-inset-right,0px))}
-.side{max-width:340px;display:flex;flex-direction:column;gap:18px}
-.side .brand{font-family:var(--display);font-weight:700;letter-spacing:.3em;color:var(--gold);font-size:18px}
-.side h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.05;margin:0}
-.side h1 em{color:var(--gold);font-weight:500}
-.side p{margin:0;color:var(--muted)}
-.side ol{margin:0;padding-left:20px;color:var(--bone);display:flex;flex-direction:column;gap:8px}
-.side ol li::marker{color:var(--gold);font-weight:600}
-.side .fine{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
-.phone{width:390px;height:min(844px,calc(100dvh - 48px));border:1px solid var(--line);border-radius:44px;background:var(--ink);overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 8px #151410}
-@media (max-width:820px){
+body{background:var(--ink);color:var(--bone);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+img{display:block;max-width:100%}
+[hidden]{display:none!important}
+:focus-visible{outline:1.5px solid var(--gold);outline-offset:3px}
+
+/* ---------- desktop stage ---------- */
+.stage{min-height:100dvh;display:grid;grid-template-columns:minmax(0,420px) auto;align-items:center;justify-content:center;gap:72px;padding:32px max(24px,env(safe-area-inset-left,0px)) 32px max(24px,env(safe-area-inset-right,0px));position:relative;overflow:hidden}
+.stage::before{content:"25";position:absolute;left:-40px;bottom:-120px;font-family:var(--serif);font-weight:700;font-size:520px;line-height:1;color:rgba(201,173,101,.045);pointer-events:none}
+.side{display:flex;flex-direction:column;gap:22px;position:relative}
+.word{font-family:var(--serif);font-size:24px;color:var(--gold);letter-spacing:.02em;text-decoration:none}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.side h1{font-family:var(--serif);font-weight:400;font-size:52px;line-height:1.02;margin:0;letter-spacing:-.01em}
+.side h1 span{color:var(--gold);display:block}
+.side p{margin:0;color:var(--muted);max-width:38ch}
+.steps-list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.steps-list li{display:grid;grid-template-columns:40px 1fr;gap:8px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}
+.steps-list b{color:var(--bone);font-weight:600}
+.steps-list i{font-style:normal;font-family:var(--serif);color:var(--gold);font-size:17px}
+.qr-box{display:flex;gap:16px;align-items:center;border:1px solid var(--line);padding:14px}
+.qr-box canvas,.qr-box img{width:84px;height:84px;background:var(--bone);padding:6px;flex:none}
+.qr-box p{font-size:13px}
+.back{color:var(--bone);font-size:13px;text-decoration:none;border-bottom:1px solid var(--bone);align-self:flex-start;padding-bottom:2px}
+.phone{width:390px;height:min(844px,calc(100dvh - 64px));border-radius:46px;background:var(--ink);overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 0 0 1px #2a2a24,0 0 0 9px #121310,0 0 0 10px #2a2a24,0 40px 90px rgba(0,0,0,.7)}
+@media (max-width:900px){
   .side{display:none}
-  .stage{padding:0;display:block}
-  .phone{width:100%;height:100dvh;border:0;border-radius:0;box-shadow:none}
+  .stage{display:block;padding:0}
+  .stage::before{display:none}
+  .phone{width:100%;height:100dvh;border-radius:0;box-shadow:none}
 }
-/* top bar */
-.top{padding:calc(14px + env(safe-area-inset-top,0px)) 18px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);background:var(--ink);flex:none}
-.logo{font-family:var(--display);font-weight:700;letter-spacing:.28em;color:var(--gold);font-size:15px}
-.demo-tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);padding:3px 7px;border-radius:99px}
-.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:3px;margin:10px 18px 0;flex:none}
-.seg button{flex:1;border:0;background:transparent;padding:8px 6px;border-radius:99px;font-size:13px;font-weight:600;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--gold);color:var(--ink)}
-.screen{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 18px 24px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch}
+
+/* ---------- app chrome ---------- */
+.top{flex:none;display:flex;align-items:center;justify-content:space-between;padding:calc(16px + env(safe-area-inset-top,0px)) 20px 12px;border-bottom:1px solid var(--line)}
+.top .word{font-size:19px}
+.tag-demo{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line2);padding:4px 7px}
+.mode{flex:none;display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+.mode button{padding:12px 0 11px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);border-bottom:2px solid transparent;transition:color .2s}
+.mode button[aria-pressed="true"]{color:var(--bone);border-bottom-color:var(--gold)}
+.viewport{flex:1;position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:22px 20px 28px;display:flex;flex-direction:column;gap:18px;-webkit-overflow-scrolling:touch}
 .screen > *{flex-shrink:0}
-.screen.fade{animation:fade .35s ease both}
-@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.foot{flex:none;display:flex;justify-content:space-between;align-items:center;padding:10px 18px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);font-size:12px;color:var(--muted);gap:8px}
-.foot button{background:none;border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:12px;color:var(--bone)}
-.foot button .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-right:6px;vertical-align:1px}
-/* type */
-.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600}
-h2{font-family:var(--display);font-weight:700;font-size:28px;line-height:1.08;margin:4px 0 0;text-wrap:balance}
-h3{margin:0;font-size:16px;font-weight:600}
+.screen.enter{animation:enter .42s var(--ease) both}
+.screen.enter-back{animation:enterBack .42s var(--ease) both}
+@keyframes enter{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes enterBack{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+.tabs{flex:none;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);background:var(--ink)}
+.tabs button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 9px;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.tabs button svg{width:20px;height:20px}
+.tabs button[aria-current="page"]{color:var(--gold)}
+.foot{flex:none;display:flex;justify-content:space-between;align-items:center;padding:9px 20px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);gap:8px}
+.foot button{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px}
+.foot .dot{width:6px;height:6px;background:var(--gold);border-radius:50%}
+
+/* ---------- type + blocks ---------- */
+h2{font-family:var(--serif);font-weight:400;font-size:31px;line-height:1.06;margin:6px 0 0;letter-spacing:-.005em;text-wrap:balance}
+h2 span{color:var(--gold)}
+h3{margin:0;font-size:15px;font-weight:600}
+p{margin:0}
 .muted{color:var(--muted)}
 .small{font-size:12.5px}
-.mono{font-family:var(--mono);font-size:11.5px;word-break:break-all}
-.stepper{display:flex;gap:5px}
-.stepper span{flex:1;height:3px;border-radius:2px;background:var(--line)}
-.stepper span.on{background:var(--gold)}
-/* blocks */
-.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.row > :first-child{min-width:0}
-.kv{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
-.kv:last-child{border-bottom:0}
-.kv span:first-child{color:var(--muted)}
-.kv span:last-child{text-align:right}
-.btn{border:0;border-radius:14px;background:var(--gold);color:var(--ink);font-weight:700;font-size:16px;padding:15px 18px;width:100%;transition:transform .1s, opacity .2s}
-.btn:active{transform:scale(.98)}
-.btn[disabled]{opacity:.35;cursor:default}
-.btn.ghost{background:transparent;color:var(--bone);border:1px solid var(--line);font-weight:600}
-.btn:focus-visible,.seg button:focus-visible,.foot button:focus-visible,.chip:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
-.check{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
-.check:last-child{border-bottom:0}
-.tick{flex:none;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:13px;color:transparent;transition:all .3s}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.02em;word-break:break-all}
+.progress{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.progress span{height:2px;background:var(--line2)}
+.progress span.on{background:var(--gold)}
+.rule{border-top:1px solid var(--line)}
+.list{border-top:1px solid var(--line)}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv > span:first-child{color:var(--muted)}
+.kv > :last-child{text-align:right}
+.gold{color:var(--gold)}
+.okc{color:var(--ok)}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--gold);color:var(--ink);font-weight:700;font-size:15px;letter-spacing:.01em;padding:16px 18px;transition:transform .12s,opacity .2s,background .2s}
+.btn:hover{background:#d6bc77}
+.btn:active{transform:scale(.985)}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn svg{width:16px;height:16px}
+.link{align-self:flex-start;color:var(--bone);font-size:14px;border-bottom:1px solid var(--bone);padding-bottom:2px}
+.link.center{align-self:center}
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:6px 9px;background:rgba(9,10,8,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);color:var(--gold)}
+.pill.ok{color:var(--ok);border-color:rgba(134,199,160,.35)}
+.pill svg{width:12px;height:12px}
+
+/* photos */
+.photo{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#211d14,#0b0b09 70%);border:1px solid var(--line)}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s ease,transform 6s ease}
+.photo img.in{opacity:1}
+.photo.hero{aspect-ratio:4/3}
+.photo.wide{aspect-ratio:16/9}
+.photo.sq{aspect-ratio:1}
+.photo .tl{position:absolute;top:12px;left:12px;z-index:2}
+.photo .tr{position:absolute;top:12px;right:12px;z-index:2}
+.photo .fallback{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--serif);font-size:64px;color:rgba(201,173,101,.18)}
+.photo:hover img.in{transform:scale(1.03)}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.thumbs .photo{aspect-ratio:1}
+.thumbs .cap{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:14px 6px 5px;background:linear-gradient(transparent,rgba(0,0,0,.85));font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;text-align:center;color:var(--bone)}
+
+/* checks */
+.checks{border-top:1px solid var(--line)}
+.check{display:grid;grid-template-columns:26px 1fr;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);align-items:start}
+.tick{width:22px;height:22px;border:1px solid var(--line2);display:grid;place-items:center;color:transparent;transition:all .3s;margin-top:1px}
+.tick svg{width:13px;height:13px}
 .check.done .tick{background:var(--ok);border-color:var(--ok);color:var(--ink)}
-.check.busy .tick{border-color:var(--gold);border-top-color:transparent;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.check b{display:block;font-weight:600}
-.check small{color:var(--muted)}
-.badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:5px 9px;border-radius:99px;background:rgba(201,169,97,.12);color:var(--gold);border:1px solid rgba(201,169,97,.3);white-space:nowrap}
-.badge.ok{background:rgba(95,191,127,.12);color:var(--ok);border-color:rgba(95,191,127,.35)}
-.hero-item{border-radius:20px;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#2a2418 0%,#0f0e0b 70%);border:1px solid var(--line);position:relative;aspect-ratio:4/3;display:grid;place-items:center}
-.hero-item svg{height:84%;width:auto;max-width:80%}
-.ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.thumb .ph{position:absolute}
-.banner{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:16/9;border:1px solid var(--line)}
-.story.arena{background:linear-gradient(180deg,rgba(10,10,10,.35),rgba(10,10,10,.92)),var(--arena) center/cover}
-.mini{width:64px;height:64px;flex:none;border-radius:12px;overflow:hidden;position:relative;background:var(--panel2)}
-.hero-item .corner{position:absolute;top:12px;left:12px;z-index:2;background:rgba(10,10,10,.7);backdrop-filter:blur(6px)}
-.hero-item .corner2{position:absolute;top:12px;right:12px;z-index:2;background:rgba(10,10,10,.7);backdrop-filter:blur(6px)}
-.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.thumb{aspect-ratio:1;border-radius:10px;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center;position:relative;overflow:hidden}
-.thumb svg{width:70%}
-.thumb i{position:absolute;bottom:0;left:0;right:0;z-index:2;padding:10px 0 4px;background:linear-gradient(transparent,rgba(0,0,0,.8));color:var(--bone)!important;text-align:center;font-style:normal;font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-textarea{width:100%;min-height:96px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;color:var(--bone);font:inherit;font-size:14px;padding:12px;resize:vertical}
-textarea:focus{outline:2px solid var(--gold-soft)}
-/* tap */
-.tap{display:grid;place-items:center;padding:18px 0 8px}
-.ring{width:190px;height:190px;border-radius:50%;border:1.5px solid var(--gold-soft);display:grid;place-items:center;position:relative}
-.ring::before,.ring::after{content:"";position:absolute;inset:-1px;border-radius:50%;border:1.5px solid var(--gold);opacity:0}
-.ring.live::before{animation:pulse 1.4s ease-out infinite}
-.ring.live::after{animation:pulse 1.4s ease-out .7s infinite}
-@keyframes pulse{0%{transform:scale(.8);opacity:.9}100%{transform:scale(1.5);opacity:0}}
-.ring .core{width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#2d2719,#0d0c09);border:1px solid var(--line);display:grid;place-items:center;text-align:center;font-size:12px;color:var(--muted)}
-.ring .core svg{width:44px;height:44px;color:var(--gold)}
-.ring.ok{border-color:var(--ok)}
-.ring.ok .core{border-color:var(--ok)}
-.ring.ok .core svg{color:var(--ok)}
-/* mint */
-.term{background:#070706;border:1px solid var(--line);border-radius:14px;padding:12px;font-family:var(--mono);font-size:11px;color:#b9b3a6;height:132px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:2px}
-.term .g{color:var(--gold)}
-.term .k{color:var(--ok)}
-.cert{border:1px solid var(--gold-soft);border-radius:20px;padding:18px;background:linear-gradient(160deg,#1d1912 0%,#0d0c0a 60%);display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
-.cert::after{content:"55";position:absolute;right:-10px;bottom:-40px;font-family:var(--display);font-weight:700;font-size:150px;color:transparent;-webkit-text-stroke:1px rgba(201,169,97,.18);pointer-events:none}
-.cert .num{font-family:var(--display);font-size:30px;font-weight:700;color:var(--gold);line-height:1}
-/* split bar */
-.split{display:flex;height:12px;border-radius:6px;overflow:hidden}
-.split span{display:block;height:100%}
-.legend{display:flex;flex-direction:column;gap:6px;font-size:14px}
-.legend div{display:flex;justify-content:space-between;gap:10px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:0}
+.check.busy .tick{border-color:var(--gold);animation:pulseb 1s ease-in-out infinite}
+@keyframes pulseb{50%{background:rgba(201,173,101,.25)}}
+.check b{display:block;font-weight:600;font-size:14.5px}
+.check small{color:var(--muted);font-size:12.5px}
+
+textarea{width:100%;min-height:104px;background:var(--panel);border:1px solid var(--line);color:var(--bone);font:inherit;font-size:14px;line-height:1.55;padding:12px;resize:vertical;border-radius:0}
+textarea:focus{outline:1px solid var(--gold);outline-offset:0}
+
+/* scan ring */
+.scan{display:grid;place-items:center;padding:6px 0}
+.ring{width:176px;height:176px;border:1px solid var(--line);display:grid;place-items:center;position:relative}
+.ring::before,.ring::after{content:"";position:absolute;width:22px;height:22px;border-color:var(--gold);border-style:solid}
+.ring::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.ring::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.ring .c2{position:absolute;inset:0}
+.ring .c2::before,.ring .c2::after{content:"";position:absolute;width:22px;height:22px;border-color:var(--gold);border-style:solid}
+.ring .c2::before{top:-1px;right:-1px;border-width:2px 2px 0 0}
+.ring .c2::after{bottom:-1px;left:-1px;border-width:0 0 2px 2px}
+.ring .beam{position:absolute;left:8px;right:8px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);top:10%;opacity:0}
+.ring.live .beam{opacity:1;animation:beam 1.3s ease-in-out infinite alternate}
+@keyframes beam{to{top:88%}}
+.ring .core{display:flex;flex-direction:column;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:center}
+.ring .core canvas,.ring .core img.qr{width:96px;height:96px;background:var(--bone);padding:5px;image-rendering:pixelated}
+.ring.ok{border-color:rgba(134,199,160,.5)}
+.ring.ok .core{color:var(--ok)}
+.okmark{width:58px;height:58px;border:1.5px solid var(--ok);border-radius:50%;display:grid;place-items:center;color:var(--ok);animation:pop .45s var(--ease)}
+.okmark svg{width:28px;height:28px}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+
+/* mint console */
+.console{background:#060605;border:1px solid var(--line);padding:14px;font-family:var(--mono);font-size:11px;line-height:1.7;color:#a7a397;min-height:176px;display:flex;flex-direction:column;justify-content:flex-end}
+.console .g{color:var(--gold)}
+.console .k{color:var(--ok)}
+.bar{height:2px;background:var(--line2);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--gold);transition:width .35s ease}
+
+/* certificate */
+.cert{border:1px solid var(--gold-d);padding:20px;background:linear-gradient(160deg,#17150f 0%,#0b0b09 65%);display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.cert::after{content:"25";position:absolute;right:-6px;bottom:-62px;font-family:var(--serif);font-weight:700;font-size:170px;color:rgba(201,173,101,.07);pointer-events:none}
+.cert .num{font-family:var(--serif);font-size:40px;line-height:1;color:var(--gold)}
+.cert .list{position:relative;z-index:1}
+
+/* money split */
+.split{display:flex;height:6px}
+.split span{display:block}
+.legend{display:flex;flex-direction:column}
+.legend div{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.legend i{display:inline-block;width:8px;height:8px;margin-right:9px}
+.legend b{font-family:var(--serif);font-weight:400;font-size:19px}
+
 /* timeline */
-.tl{display:flex;flex-direction:column}
-.tl-item{display:grid;grid-template-columns:22px 1fr;gap:10px;position:relative;padding-bottom:16px}
-.tl-item:last-child{padding-bottom:0}
-.tl-item::before{content:"";position:absolute;left:10px;top:20px;bottom:0;width:1.5px;background:var(--line)}
-.tl-item:last-child::before{display:none}
-.tl-dot{width:22px;height:22px;border-radius:50%;background:var(--panel2);border:1.5px solid var(--gold);display:grid;place-items:center;font-size:10px;color:var(--gold);font-weight:700}
-.tl-item.new .tl-dot{background:var(--gold);color:var(--ink)}
-.tl-item b{display:block;font-weight:600;font-size:14px}
-.tl-item small{color:var(--muted);font-size:12px}
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{border:1px solid var(--line);background:var(--panel2);border-radius:99px;padding:8px 14px;font-weight:600;font-size:14px}
-.chip[aria-pressed="true"]{border-color:var(--gold);color:var(--gold);background:rgba(201,169,97,.1)}
-.big{font-family:var(--display);font-weight:700;font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
-.stat b{font-family:var(--display);font-size:26px;color:var(--gold);line-height:1;font-variant-numeric:tabular-nums}
-.stat span{font-size:12px;color:var(--muted)}
-.home-card{display:flex;gap:14px;align-items:center;text-align:left;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px}
-.home-card .n{flex:none;width:40px;height:40px;border-radius:12px;border:1px solid var(--gold-soft);display:grid;place-items:center;font-family:var(--display);color:var(--gold);font-weight:700;font-size:18px}
-.home-card b{display:block;font-size:15px}
-.home-card small{color:var(--muted)}
-.home-card .arr{margin-left:auto;color:var(--gold);font-size:20px}
-.home-card.done{opacity:.55}
-/* sheet */
-.sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;z-index:20;animation:fade .2s}
-.sheet{width:100%;max-height:78%;background:var(--panel);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));overflow-y:auto;display:flex;flex-direction:column;gap:12px}
-.ledger-row{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;background:var(--panel2)}
-.ledger-row b{font-size:13px}
-.story{border-radius:18px;padding:18px;background:linear-gradient(180deg,#1a1712,#0e0d0a);border:1px solid var(--line);display:flex;flex-direction:column;gap:10px;position:relative}
-.play{width:46px;height:46px;border-radius:50%;background:var(--gold);color:var(--ink);display:grid;place-items:center;border:0;flex:none}
-.quote{font-family:var(--display);font-style:italic;font-size:19px;line-height:1.3}
-.toast{position:absolute;left:18px;right:18px;top:calc(112px + env(safe-area-inset-top,0px));background:var(--ok);color:var(--ink);font-weight:600;border-radius:14px;padding:12px 14px;z-index:30;animation:drop .35s ease both;font-size:14px}
-@keyframes drop{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.tl{border-top:1px solid var(--line)}
+.tl-item{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:14px 0;border-bottom:1px solid var(--line)}
+.tl-num{font-family:var(--serif);color:var(--gold);font-size:18px}
+.tl-item.new .tl-num::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-left:5px;vertical-align:4px}
+.tl-item b{display:block;font-weight:600;font-size:14.5px}
+.tl-item small{display:block;color:var(--muted);font-size:12.5px}
+
+.price{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.price b{font-family:var(--serif);font-weight:400;font-size:40px;line-height:1}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line)}
+.chip{padding:12px 0;font-family:var(--serif);font-size:18px;color:var(--muted);border-right:1px solid var(--line)}
+.chip:last-child{border-right:0}
+.chip[aria-pressed="true"]{background:rgba(201,173,101,.12);color:var(--gold)}
+.stat-big{font-family:var(--serif);font-size:52px;line-height:1;color:var(--gold)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line)}
+.grid2 > div{padding:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.grid2 > div + div{border-left:1px solid var(--line)}
+.grid2 b{font-family:var(--serif);font-weight:400;font-size:26px;color:var(--bone)}
+.grid2 span{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.owner{display:flex;align-items:center;gap:12px}
+.mono-av{width:42px;height:42px;border:1px solid var(--line);display:grid;place-items:center;font-family:var(--serif);color:var(--gold);font-size:17px;flex:none}
+
+/* story */
+.story{position:relative;border:1px solid var(--line);overflow:hidden;min-height:210px;display:flex;flex-direction:column;justify-content:flex-end;padding:18px}
+.story .photo{position:absolute;inset:0;border:0}
+.story .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,10,8,.15),rgba(9,10,8,.92) 72%);z-index:1}
+.story > :not(.photo){position:relative;z-index:2}
+.story-bars{display:flex;gap:4px;margin-bottom:12px}
+.story-bars span{flex:1;height:2px;background:rgba(242,241,236,.25);position:relative;overflow:hidden}
+.story-bars span i{position:absolute;inset:0 auto 0 0;width:0;background:var(--bone)}
+.quote{font-family:var(--serif);font-style:italic;font-size:20px;line-height:1.3;min-height:78px;transition:opacity .3s}
+.story-meta{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.play{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.play svg{width:14px;height:14px}
+
+/* sheet + toast */
+.sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;z-index:20;animation:fadein .2s}
+@keyframes fadein{from{opacity:0}}
+.sheet{width:100%;max-height:80%;background:var(--panel);border-top:1px solid var(--gold-d);padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));overflow-y:auto;display:flex;flex-direction:column;gap:14px;animation:up .35s var(--ease)}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.lrow{border-bottom:1px solid var(--line);padding:11px 0;display:flex;flex-direction:column;gap:3px}
+.lrow b{font-size:13.5px}
+.toast{position:absolute;left:20px;right:20px;top:calc(104px + env(safe-area-inset-top,0px));z-index:30;background:var(--bone);color:var(--ink);padding:12px 14px;font-size:13.5px;font-weight:600;display:flex;gap:10px;align-items:center;animation:drop .35s var(--ease) both}
+.toast svg{width:16px;height:16px;color:#2d7a4d;flex:none}
+@keyframes drop{from{opacity:0;transform:translateY(-10px)}}
+.banner-scan{border:1px solid rgba(134,199,160,.4);background:rgba(134,199,160,.08);padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.banner-scan svg{width:18px;height:18px;color:var(--ok);flex:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div class="stage">
   <aside class="side">
-    <div class="brand">PROOVD</div>
-    <h1>Tokenize a real jersey in <em>60 seconds.</em></h1>
-    <p>A working prototype of PROOVD. Click through both sides on the phone.</p>
-    <ol>
-      <li><b>Athlete studio:</b> verify Cady, document his UMass Senior Night jersey, tap the tag, tokenize it.</li>
-      <li><b>Fan app:</b> buy the drop and see the 70 / 30 split.</li>
-      <li><b>Scan to verify:</b> tap the item, match the record.</li>
-      <li><b>Resell:</b> the record follows the jersey and Cady earns 5%.</li>
+    <a class="word" href="https://getproovd.com">PROOVD</a>
+    <div class="eyebrow">Interactive demo</div>
+    <h1>One jersey.<span>Its whole journey.</span></h1>
+    <p>Follow a signed jersey from the athlete's hands to a collector's, then to the next one. Use the phone on the right.</p>
+    <ol class="steps-list">
+      <li><i>01</i><span><b>Tokenize.</b> Verify the athlete, document the item, bind its tag, create the record.</span></li>
+      <li><i>02</i><span><b>Buy.</b> See exactly where the money goes: 70% to the athlete.</span></li>
+      <li><i>03</i><span><b>Verify.</b> Scan the collar tag. The record moves to the new owner.</span></li>
+      <li><i>04</i><span><b>Resell.</b> The record travels with the jersey. The athlete earns 5%.</span></li>
     </ol>
-    <p class="fine">Prototype with demo data. No real payments, identity checks or ledger writes. Tap “Ledger” at the bottom of the phone to see each record event.</p>
+    <div class="qr-box"><div id="sideQr"></div><p class="muted">Point your phone camera here to open this jersey's record, exactly as a collector would by scanning its tag.</p></div>
+    <p class="small muted">Demo with sample data. Payments, identity checks and record writes are simulated.</p>
+    <a class="back" href="https://getproovd.com">Back to getproovd.com ↗</a>
   </aside>
+
   <div class="phone" id="phone">
-    <div class="top">
-      <span class="logo">PROOVD</span>
-      <span class="demo-tag">Prototype · demo data</span>
-    </div>
-    <div class="seg" role="group" aria-label="App side">
+    <header class="top">
+      <span class="word">PROOVD</span>
+      <span class="tag-demo">Demo</span>
+    </header>
+    <nav class="mode" aria-label="App side">
       <button type="button" data-side="athlete">Athlete studio</button>
-      <button type="button" data-side="fan">Fan app</button>
-    </div>
-    <main class="screen" id="screen" aria-live="polite"></main>
-    <div class="foot">
-      <button type="button" id="ledgerBtn"><span class="dot"></span>Ledger <span id="ledgerCount">0</span></button>
-      <button type="button" id="restartBtn">Restart demo</button>
-    </div>
+      <button type="button" data-side="fan">Collector app</button>
+    </nav>
+    <div class="viewport"><main class="screen" id="screen" aria-live="polite"></main></div>
+    <nav class="tabs" id="tabs" aria-label="Collector app" hidden>
+      <button type="button" data-tab="drop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M6 7l1 13h10l1-13M9 7V5a3 3 0 0 1 6 0v2"/></svg>Drop</button>
+      <button type="button" data-tab="scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M4 12h16"/></svg>Verify</button>
+      <button type="button" data-tab="collection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg>Collection</button>
+    </nav>
+    <footer class="foot">
+      <button type="button" id="ledgerBtn"><span class="dot"></span>Record log · <span id="ledgerCount">0</span></button>
+      <button type="button" id="restartBtn">Restart</button>
+    </footer>
   </div>
 </div>
 
 <script>
 (function(){
   "use strict";
-  // ---------- helpers ----------
-  const $ = (s, r=document) => r.querySelector(s);
-  const money = n => "$" + n.toLocaleString("en-US");
-  const hex = n => { const a = new Uint8Array(n); (window.crypto||{}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_,i)=>a[i]=Math.random()*256|0); return Array.from(a, b => b.toString(16).padStart(2,"0")).join(""); };
-  const short = h => h.slice(0,6) + "…" + h.slice(-4);
-  const now = () => new Date().toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+  // ================= config =================
+  const CDN = "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/";
+  const IMG = {
+    hero:  CDN + "hf_20261113_054724_72c40b4b-1490-43b9-9aa4-269865522fa7.png",
+    back:  CDN + "hf_20261113_054724_ae31ff15-52c9-4558-896b-46487a12dfa1.png",
+    sig:   CDN + "hf_20261113_054724_9c568ee5-d312-4bfa-853d-3efe162afdd6.png",
+    tag:   CDN + "hf_20261113_054723_67d110f8-e65d-41ca-b843-a8fe1fa96911.png",
+    tap:   CDN + "hf_20261113_054724_94e2a6d1-77b1-4ac6-b115-2726409997dc.png",
+    arena: CDN + "hf_20261113_054724_8fd8e589-d86d-40d2-8ac1-e9222cacb23e.png",
+    box:   CDN + "hf_20261113_054723_b40a9c15-c5f4-4349-9e88-28d995701247.png"
+  };
+  const SERIAL = "PRV-0001";
+  const RECORD_URL = "https://demo.getproovd.com/#r/" + SERIAL;
+  const PRICE = 750, ATH = 0.70, ROY = 0.05, PFEE = 0.10;
+  const STORY = [
+    "Senior Night at the Mullins Center, 2015.",
+    "My last home game in a UMass uniform.",
+    "A few months later, the Spurs called my name at 55.",
+    "This is my jersey from that night, signed."
+  ];
+  const STORE_KEY = "proovd-demo-v2";
+
+  // ================= helpers =================
+  const $ = (s, r = document) => r.querySelector(s);
+  const money = n => "$" + Math.round(n).toLocaleString("en-US");
+  const hex = n => { const a = new Uint8Array(n); try { crypto.getRandomValues(a); } catch(e) { for (let i=0;i<n;i++) a[i] = Math.random()*256|0; } return Array.from(a, b => b.toString(16).padStart(2,"0")).join(""); };
+  const short = h => h ? h.slice(0,8) + "…" + h.slice(-6) : "—";
+  const stamp = () => new Date().toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
   const wait = ms => new Promise(r => setTimeout(r, ms));
   const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const I = {
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke-linecap="round"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>'
+  };
 
-  const PRICE = 750, ATH = .70, ROY = .05, PFEE = .10;
-  const DEFAULT_STORY = "Senior Night at the Mullins Center, 2015. My last home game in a UMass uniform. A few months later the Spurs called my name at 55. This is my jersey from that night, signed.";
+  const QR_URI = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0nMS4wJyBlbmNvZGluZz0nVVRGLTgnPz4KPHN2ZyB3aWR0aD0iMzFtbSIgaGVpZ2h0PSIzMW1tIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCAzMSAzMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMSwxSDJWMkgxek0yLDFIM1YySDJ6TTMsMUg0VjJIM3pNNCwxSDVWMkg0ek01LDFINlYySDV6TTYsMUg3VjJINnpNNywxSDhWMkg3ek0xMSwxSDEyVjJIMTF6TTEyLDFIMTNWMkgxMnpNMTMsMUgxNFYySDEzek0xNiwxSDE3VjJIMTZ6TTE3LDFIMThWMkgxN3pNMTgsMUgxOVYySDE4ek0xOSwxSDIwVjJIMTl6TTIwLDFIMjFWMkgyMHpNMjEsMUgyMlYySDIxek0yMywxSDI0VjJIMjN6TTI0LDFIMjVWMkgyNHpNMjUsMUgyNlYySDI1ek0yNiwxSDI3VjJIMjZ6TTI3LDFIMjhWMkgyN3pNMjgsMUgyOVYySDI4ek0yOSwxSDMwVjJIMjl6TTEsMkgyVjNIMXpNNywySDhWM0g3ek05LDJIMTBWM0g5ek0xMCwySDExVjNIMTB6TTE0LDJIMTVWM0gxNHpNMTYsMkgxN1YzSDE2ek0xOSwySDIwVjNIMTl6TTIwLDJIMjFWM0gyMHpNMjMsMkgyNFYzSDIzek0yOSwySDMwVjNIMjl6TTEsM0gyVjRIMXpNMywzSDRWNEgzek00LDNINVY0SDR6TTUsM0g2VjRINXpNNywzSDhWNEg3ek0xMCwzSDExVjRIMTB6TTExLDNIMTJWNEgxMXpNMTIsM0gxM1Y0SDEyek0xNSwzSDE2VjRIMTV6TTE3LDNIMThWNEgxN3pNMTksM0gyMFY0SDE5ek0yMywzSDI0VjRIMjN6TTI1LDNIMjZWNEgyNXpNMjYsM0gyN1Y0SDI2ek0yNywzSDI4VjRIMjd6TTI5LDNIMzBWNEgyOXpNMSw0SDJWNUgxek0zLDRINFY1SDN6TTQsNEg1VjVINHpNNSw0SDZWNUg1ek03LDRIOFY1SDd6TTExLDRIMTJWNUgxMXpNMTIsNEgxM1Y1SDEyek0xNiw0SDE3VjVIMTZ6TTE3LDRIMThWNUgxN3pNMTksNEgyMFY1SDE5ek0yMCw0SDIxVjVIMjB6TTIzLDRIMjRWNUgyM3pNMjUsNEgyNlY1SDI1ek0yNiw0SDI3VjVIMjZ6TTI3LDRIMjhWNUgyN3pNMjksNEgzMFY1SDI5ek0xLDVIMlY2SDF6TTMsNUg0VjZIM3pNNCw1SDVWNkg0ek01LDVINlY2SDV6TTcsNUg4VjZIN3pNOSw1SDEwVjZIOXpNMTAsNUgxMVY2SDEwek0xMSw1SDEyVjZIMTF6TTEyLDVIMTNWNkgxMnpNMTMsNUgxNFY2SDEzek0xNiw1SDE3VjZIMTZ6TTE3LDVIMThWNkgxN3pNMTksNUgyMFY2SDE5ek0yMCw1SDIxVjZIMjB6TTIzLDVIMjRWNkgyM3pNMjUsNUgyNlY2SDI1ek0yNiw1SDI3VjZIMjZ6TTI3LDVIMjhWNkgyN3pNMjksNUgzMFY2SDI5ek0xLDZIMlY3SDF6TTcsNkg4VjdIN3pNMTAsNkgxMVY3SDEwek0xMiw2SDEzVjdIMTJ6TTEzLDZIMTRWN0gxM3pNMTQsNkgxNVY3SDE0ek0xNiw2SDE3VjdIMTZ6TTIwLDZIMjFWN0gyMHpNMjMsNkgyNFY3SDIzek0yOSw2SDMwVjdIMjl6TTEsN0gyVjhIMXpNMiw3SDNWOEgyek0zLDdINFY4SDN6TTQsN0g1VjhINHpNNSw3SDZWOEg1ek02LDdIN1Y4SDZ6TTcsN0g4VjhIN3pNOSw3SDEwVjhIOXpNMTEsN0gxMlY4SDExek0xMyw3SDE0VjhIMTN6TTE1LDdIMTZWOEgxNXpNMTcsN0gxOFY4SDE3ek0xOSw3SDIwVjhIMTl6TTIxLDdIMjJWOEgyMXpNMjMsN0gyNFY4SDIzek0yNCw3SDI1VjhIMjR6TTI1LDdIMjZWOEgyNXpNMjYsN0gyN1Y4SDI2ek0yNyw3SDI4VjhIMjd6TTI4LDdIMjlWOEgyOHpNMjksN0gzMFY4SDI5ek0xMSw4SDEyVjlIMTF6TTEyLDhIMTNWOUgxMnpNMTQsOEgxNVY5SDE0ek0xNSw4SDE2VjlIMTV6TTE2LDhIMTdWOUgxNnpNMTgsOEgxOVY5SDE4ek0xOSw4SDIwVjlIMTl6TTIxLDhIMjJWOUgyMXpNMSw5SDJWMTBIMXpNMyw5SDRWMTBIM3pNNSw5SDZWMTBINXpNNyw5SDhWMTBIN3pNMTEsOUgxMlYxMEgxMXpNMTMsOUgxNFYxMEgxM3pNMTUsOUgxNlYxMEgxNXpNMTgsOUgxOVYxMEgxOHpNMjUsOUgyNlYxMEgyNXpNMjgsOUgyOVYxMEgyOHpNMSwxMEgyVjExSDF6TTMsMTBINFYxMUgzek00LDEwSDVWMTFINHpNNiwxMEg3VjExSDZ6TTgsMTBIOVYxMUg4ek0xMCwxMEgxMVYxMUgxMHpNMjEsMTBIMjJWMTFIMjF6TTIyLDEwSDIzVjExSDIyek0yMywxMEgyNFYxMUgyM3pNMjQsMTBIMjVWMTFIMjR6TTI2LDEwSDI3VjExSDI2ek0yOSwxMEgzMFYxMUgyOXpNMiwxMUgzVjEySDJ6TTQsMTFINVYxMkg0ek01LDExSDZWMTJINXpNNiwxMUg3VjEySDZ6TTcsMTFIOFYxMkg3ek0xMCwxMUgxMVYxMkgxMHpNMTEsMTFIMTJWMTJIMTF6TTE0LDExSDE1VjEySDE0ek0xOCwxMUgxOVYxMkgxOHpNMjIsMTFIMjNWMTJIMjJ6TTI0LDExSDI1VjEySDI0ek0yNywxMUgyOFYxMkgyN3pNMjgsMTFIMjlWMTJIMjh6TTI5LDExSDMwVjEySDI5ek0zLDEySDRWMTNIM3pNNCwxMkg1VjEzSDR6TTUsMTJINlYxM0g1ek0xNiwxMkgxN1YxM0gxNnpNMTcsMTJIMThWMTNIMTd6TTE4LDEySDE5VjEzSDE4ek0xOSwxMkgyMFYxM0gxOXpNMjEsMTJIMjJWMTNIMjF6TTIyLDEySDIzVjEzSDIyek0yMywxMkgyNFYxM0gyM3pNMjUsMTJIMjZWMTNIMjV6TTI4LDEySDI5VjEzSDI4ek0xLDEzSDJWMTRIMXpNMiwxM0gzVjE0SDJ6TTcsMTNIOFYxNEg3ek05LDEzSDEwVjE0SDl6TTEwLDEzSDExVjE0SDEwek0xNiwxM0gxN1YxNEgxNnpNMTcsMTNIMThWMTRIMTd6TTE4LDEzSDE5VjE0SDE4ek0yMCwxM0gyMVYxNEgyMHpNMjEsMTNIMjJWMTRIMjF6TTIyLDEzSDIzVjE0SDIyek0yMywxM0gyNFYxNEgyM3pNMjYsMTNIMjdWMTRIMjZ6TTI4LDEzSDI5VjE0SDI4ek0yOSwxM0gzMFYxNEgyOXpNMSwxNEgyVjE1SDF6TTMsMTRINFYxNUgzek00LDE0SDVWMTVINHpNNSwxNEg2VjE1SDV6TTYsMTRIN1YxNUg2ek05LDE0SDEwVjE1SDl6TTEwLDE0SDExVjE1SDEwek0xMiwxNEgxM1YxNUgxMnpNMTQsMTRIMTVWMTVIMTR6TTIxLDE0SDIyVjE1SDIxek0yMiwxNEgyM1YxNUgyMnpNMjMsMTRIMjRWMTVIMjN6TTI2LDE0SDI3VjE1SDI2ek0yOSwxNEgzMFYxNUgyOXpNMSwxNUgyVjE2SDF6TTQsMTVINVYxNkg0ek03LDE1SDhWMTZIN3pNOSwxNUgxMFYxNkg5ek0xMCwxNUgxMVYxNkgxMHpNMTMsMTVIMTRWMTZIMTN6TTE1LDE1SDE2VjE2SDE1ek0xNywxNUgxOFYxNkgxN3pNMjIsMTVIMjNWMTZIMjJ6TTIzLDE1SDI0VjE2SDIzek0yNCwxNUgyNVYxNkgyNHpNMjUsMTVIMjZWMTZIMjV6TTI2LDE1SDI3VjE2SDI2ek0yOCwxNUgyOVYxNkgyOHpNMjksMTVIMzBWMTZIMjl6TTEsMTZIMlYxN0gxek0yLDE2SDNWMTdIMnpNNCwxNkg1VjE3SDR6TTUsMTZINlYxN0g1ek04LDE2SDlWMTdIOHpNOSwxNkgxMFYxN0g5ek0xMCwxNkgxMVYxN0gxMHpNMTEsMTZIMTJWMTdIMTF6TTE0LDE2SDE1VjE3SDE0ek0xNSwxNkgxNlYxN0gxNXpNMTcsMTZIMThWMTdIMTd6TTE4LDE2SDE5VjE3SDE4ek0xOSwxNkgyMFYxN0gxOXpNMjEsMTZIMjJWMTdIMjF6TTIzLDE2SDI0VjE3SDIzek0yNSwxNkgyNlYxN0gyNXpNMjYsMTZIMjdWMTdIMjZ6TTI4LDE2SDI5VjE3SDI4ek0yLDE3SDNWMThIMnpNMywxN0g0VjE4SDN6TTQsMTdINVYxOEg0ek01LDE3SDZWMThINXpNNywxN0g4VjE4SDd6TTksMTdIMTBWMThIOXpNMTEsMTdIMTJWMThIMTF6TTEyLDE3SDEzVjE4SDEyek0xMywxN0gxNFYxOEgxM3pNMTUsMTdIMTZWMThIMTV6TTE4LDE3SDE5VjE4SDE4ek0xOSwxN0gyMFYxOEgxOXpNMjAsMTdIMjFWMThIMjB6TTIxLDE3SDIyVjE4SDIxek0yMiwxN0gyM1YxOEgyMnpNMjMsMTdIMjRWMThIMjN6TTI2LDE3SDI3VjE4SDI2ek0yOCwxN0gyOVYxOEgyOHpNMjksMTdIMzBWMThIMjl6TTYsMThIN1YxOUg2ek05LDE4SDEwVjE5SDl6TTExLDE4SDEyVjE5SDExek0xMiwxOEgxM1YxOUgxMnpNMTMsMThIMTRWMTlIMTN6TTE1LDE4SDE2VjE5SDE1ek0xNiwxOEgxN1YxOUgxNnpNMTcsMThIMThWMTlIMTd6TTIxLDE4SDIyVjE5SDIxek0yMiwxOEgyM1YxOUgyMnpNMjMsMThIMjRWMTlIMjN6TTI2LDE4SDI3VjE5SDI2ek0yNywxOEgyOFYxOUgyN3pNMjksMThIMzBWMTlIMjl6TTEsMTlIMlYyMEgxek03LDE5SDhWMjBIN3pNOCwxOUg5VjIwSDh6TTksMTlIMTBWMjBIOXpNMTIsMTlIMTNWMjBIMTJ6TTEzLDE5SDE0VjIwSDEzek0xNCwxOUgxNVYyMEgxNHpNMTcsMTlIMThWMjBIMTd6TTE4LDE5SDE5VjIwSDE4ek0yMSwxOUgyMlYyMEgyMXpNMjIsMTlIMjNWMjBIMjJ6TTIzLDE5SDI0VjIwSDIzek0yNCwxOUgyNVYyMEgyNHpNMjUsMTlIMjZWMjBIMjV6TTI4LDE5SDI5VjIwSDI4ek0yOSwxOUgzMFYyMEgyOXpNMiwyMEgzVjIxSDJ6TTQsMjBINVYyMUg0ek01LDIwSDZWMjFINXpNNiwyMEg3VjIxSDZ6TTgsMjBIOVYyMUg4ek0xMSwyMEgxMlYyMUgxMXpNMTIsMjBIMTNWMjFIMTJ6TTEzLDIwSDE0VjIxSDEzek0xOCwyMEgxOVYyMUgxOHpNMTksMjBIMjBWMjFIMTl6TTI2LDIwSDI3VjIxSDI2ek0yOCwyMEgyOVYyMUgyOHpNMSwyMUgyVjIySDF6TTMsMjFINFYyMkgzek02LDIxSDdWMjJINnpNNywyMUg4VjIySDd6TTgsMjFIOVYyMkg4ek05LDIxSDEwVjIySDl6TTExLDIxSDEyVjIySDExek0xMywyMUgxNFYyMkgxM3pNMTgsMjFIMTlWMjJIMTh6TTE5LDIxSDIwVjIySDE5ek0yMSwyMUgyMlYyMkgyMXpNMjIsMjFIMjNWMjJIMjJ6TTIzLDIxSDI0VjIySDIzek0yNCwyMUgyNVYyMkgyNHpNMjUsMjFIMjZWMjJIMjV6TTksMjJIMTBWMjNIOXpNMTAsMjJIMTFWMjNIMTB6TTExLDIySDEyVjIzSDExek0xMywyMkgxNFYyM0gxM3pNMTQsMjJIMTVWMjNIMTR6TTE2LDIySDE3VjIzSDE2ek0xNywyMkgxOFYyM0gxN3pNMTgsMjJIMTlWMjNIMTh6TTIxLDIySDIyVjIzSDIxek0yNSwyMkgyNlYyM0gyNXpNMjcsMjJIMjhWMjNIMjd6TTI4LDIySDI5VjIzSDI4ek0yOSwyMkgzMFYyM0gyOXpNMSwyM0gyVjI0SDF6TTIsMjNIM1YyNEgyek0zLDIzSDRWMjRIM3pNNCwyM0g1VjI0SDR6TTUsMjNINlYyNEg1ek02LDIzSDdWMjRINnpNNywyM0g4VjI0SDd6TTEwLDIzSDExVjI0SDEwek0xMywyM0gxNFYyNEgxM3pNMTUsMjNIMTZWMjRIMTV6TTE3LDIzSDE4VjI0SDE3ek0xOCwyM0gxOVYyNEgxOHpNMTksMjNIMjBWMjRIMTl6TTIwLDIzSDIxVjI0SDIwek0yMSwyM0gyMlYyNEgyMXpNMjMsMjNIMjRWMjRIMjN6TTI1LDIzSDI2VjI0SDI1ek0yNiwyM0gyN1YyNEgyNnpNMjgsMjNIMjlWMjRIMjh6TTI5LDIzSDMwVjI0SDI5ek0xLDI0SDJWMjVIMXpNNywyNEg4VjI1SDd6TTE0LDI0SDE1VjI1SDE0ek0xNSwyNEgxNlYyNUgxNXpNMTYsMjRIMTdWMjVIMTZ6TTE4LDI0SDE5VjI1SDE4ek0xOSwyNEgyMFYyNUgxOXpNMjEsMjRIMjJWMjVIMjF6TTI1LDI0SDI2VjI1SDI1ek0yNiwyNEgyN1YyNUgyNnpNMjgsMjRIMjlWMjVIMjh6TTI5LDI0SDMwVjI1SDI5ek0xLDI1SDJWMjZIMXpNMywyNUg0VjI2SDN6TTQsMjVINVYyNkg0ek01LDI1SDZWMjZINXpNNywyNUg4VjI2SDd6TTksMjVIMTBWMjZIOXpNMTEsMjVIMTJWMjZIMTF6TTEyLDI1SDEzVjI2SDEyek0xNSwyNUgxNlYyNkgxNXpNMTgsMjVIMTlWMjZIMTh6TTIxLDI1SDIyVjI2SDIxek0yMiwyNUgyM1YyNkgyMnpNMjMsMjVIMjRWMjZIMjN6TTI0LDI1SDI1VjI2SDI0ek0yNSwyNUgyNlYyNkgyNXpNMjgsMjVIMjlWMjZIMjh6TTI5LDI1SDMwVjI2SDI5ek0xLDI2SDJWMjdIMXpNMywyNkg0VjI3SDN6TTQsMjZINVYyN0g0ek01LDI2SDZWMjdINXpNNywyNkg4VjI3SDd6TTEwLDI2SDExVjI3SDEwek0xMSwyNkgxMlYyN0gxMXpNMTQsMjZIMTVWMjdIMTR6TTE1LDI2SDE2VjI3SDE1ek0xNiwyNkgxN1YyN0gxNnpNMTcsMjZIMThWMjdIMTd6TTE4LDI2SDE5VjI3SDE4ek0xOSwyNkgyMFYyN0gxOXpNMjAsMjZIMjFWMjdIMjB6TTI0LDI2SDI1VjI3SDI0ek0yNSwyNkgyNlYyN0gyNXpNMjcsMjZIMjhWMjdIMjd6TTI4LDI2SDI5VjI3SDI4ek0yOSwyNkgzMFYyN0gyOXpNMSwyN0gyVjI4SDF6TTMsMjdINFYyOEgzek00LDI3SDVWMjhINHpNNSwyN0g2VjI4SDV6TTcsMjdIOFYyOEg3ek05LDI3SDEwVjI4SDl6TTEwLDI3SDExVjI4SDEwek0xMiwyN0gxM1YyOEgxMnpNMTMsMjdIMTRWMjhIMTN6TTE0LDI3SDE1VjI4SDE0ek0xOCwyN0gxOVYyOEgxOHpNMTksMjdIMjBWMjhIMTl6TTIxLDI3SDIyVjI4SDIxek0yMiwyN0gyM1YyOEgyMnpNMjQsMjdIMjVWMjhIMjR6TTI1LDI3SDI2VjI4SDI1ek0yNiwyN0gyN1YyOEgyNnpNMjksMjdIMzBWMjhIMjl6TTEsMjhIMlYyOUgxek03LDI4SDhWMjlIN3pNMTAsMjhIMTFWMjlIMTB6TTEzLDI4SDE0VjI5SDEzek0xNCwyOEgxNVYyOUgxNHpNMTUsMjhIMTZWMjlIMTV6TTE3LDI4SDE4VjI5SDE3ek0xOCwyOEgxOVYyOUgxOHpNMjEsMjhIMjJWMjlIMjF6TTI0LDI4SDI1VjI5SDI0ek0yOCwyOEgyOVYyOUgyOHpNMSwyOUgyVjMwSDF6TTIsMjlIM1YzMEgyek0zLDI5SDRWMzBIM3pNNCwyOUg1VjMwSDR6TTUsMjlINlYzMEg1ek02LDI5SDdWMzBINnpNNywyOUg4VjMwSDd6TTksMjlIMTBWMzBIOXpNMTAsMjlIMTFWMzBIMTB6TTExLDI5SDEyVjMwSDExek0xMywyOUgxNFYzMEgxM3pNMTQsMjlIMTVWMzBIMTR6TTE2LDI5SDE3VjMwSDE2ek0xNywyOUgxOFYzMEgxN3pNMTgsMjlIMTlWMzBIMTh6TTE5LDI5SDIwVjMwSDE5ek0yMCwyOUgyMVYzMEgyMHpNMjEsMjlIMjJWMzBIMjF6TTIzLDI5SDI0VjMwSDIzek0yNCwyOUgyNVYzMEgyNHpNMjUsMjlIMjZWMzBIMjV6TTI4LDI5SDI5VjMwSDI4ek0yOSwyOUgzMFYzMEgyOXoiIGlkPSJxci1wYXRoIiBmaWxsPSIjMDAwMDAwIiBmaWxsLW9wYWNpdHk9IjEiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIi8+PC9zdmc+";
+  function qrDataURL(){ return QR_URI; }
+  function qrImg(cls = "qr"){
+    const u = qrDataURL(RECORD_URL);
+    return u ? `<img class="${cls}" src="${u}" alt="QR code for record ${SERIAL}">` : `<span class="mono">${SERIAL}</span>`;
+  }
+  function photo(key, cls, alt, extra = ""){
+    return `<div class="photo ${cls}"><span class="fallback">25</span><img src="${IMG[key]}" alt="${esc(alt)}" decoding="async" onload="this.classList.add('in')" onerror="this.remove()">${extra}</div>`;
+  }
 
+  // ================= state =================
   function fresh(){
     return {
-      side:"athlete", a:"home", f:"drop",
+      side:"athlete", a:"home", f:"drop", scannedVisit:false,
       verified:false, documented:false, tagged:false, minted:false,
       bought:false, scanned:false, resold:false,
-      story:DEFAULT_STORY, resalePrice:1200,
+      story:STORY.join(" "), resalePrice:1200,
       tagId:null, tokenId:null, recordHash:null, block:null,
-      ledger:[], timeline:[], earnings:{primary:0, royalty:0}, busy:false
+      ledger:[], timeline:[], earnings:{primary:0, royalty:0}
     };
   }
-  let S = fresh();
+  let S = load() || fresh();
+  let busy = false, lastDir = 1;
+
+  function load(){ try { const v = JSON.parse(localStorage.getItem(STORE_KEY)); return v && typeof v === "object" ? Object.assign(fresh(), v) : null; } catch(e){ return null; } }
+  function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e){} }
 
   function log(type, detail){
-    S.ledger.unshift({type, detail, hash:hex(32), block: (S.block||8400000) + S.ledger.length*3 + 1, at: now()});
+    const base = S.block || 8412000;
+    S.ledger.unshift({type, detail, hash:hex(32), block: base + S.ledger.length*4 + 1, at: stamp()});
     $("#ledgerCount").textContent = S.ledger.length;
   }
 
-  const IMG = {"hero": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032636_a7130cb2-b937-42dd-9c29-97c477757733.png", "back": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032637_817114d5-6d21-4747-8e80-538617de76e4.png", "sig": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032637_1b31c497-a5fc-4147-afea-c113a8fb1075.png", "tag": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_034248_aa81fd71-0bde-4673-9af5-84883eef84d2.png", "tap": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_034421_f26065b5-1ae9-486f-b973-ab3e240e5c33.png", "arena": "https://d8j0ntlcm91z4.cloudfront.net/user_3DGgzLDWfFoHwdQmfQECOABF8Jj/hf_20261113_032638_e1084515-1da1-406f-93e7-a10fa330b11d.png"};
-  // photo with drawn fallback: img sits over the svg; if it fails to load it removes itself
-  const photo = (k, alt) => `<img class="ph" src="${IMG[k]}" alt="${alt}" loading="eager" decoding="async" onerror="this.remove()">`;
-  document.documentElement.style.setProperty("--arena", `url("${IMG.arena}")`);
-  // ---------- svg ----------
-  function jersey(sign=true){
-    return `<svg viewBox="0 0 300 330" aria-label="UMass number 25 jersey, signed" role="img">
-      <defs><linearGradient id="jg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8e252b"/><stop offset="1" stop-color="#5e1519"/></linearGradient></defs>
-      <path d="M92 18 Q150 62 208 18 L250 34 Q238 92 262 120 L262 312 Q150 326 38 312 L38 120 Q62 92 50 34 Z" fill="url(#jg)" stroke="#f5f2ec" stroke-width="6"/>
-      <path d="M92 18 Q150 62 208 18" fill="none" stroke="#f5f2ec" stroke-width="10"/>
-      <text x="150" y="122" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="40" fill="#f5f2ec" letter-spacing="3">UMASS</text>
-      <text x="150" y="238" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="112" fill="#f5f2ec" stroke="#2a0a0c" stroke-width="3">25</text>
-      ${sign ? `<path d="M70 278 C96 250 104 296 128 266 C140 252 146 286 162 268 C176 252 182 282 204 262 C214 254 222 270 236 258" fill="none" stroke="#c9a961" stroke-width="4.5" stroke-linecap="round"/>` : ""}
-      <rect x="135" y="292" width="30" height="12" rx="3" fill="#c9a961" opacity=".9"/>
-    </svg>`;
-  }
-  const nfc = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 8.5a6 6 0 0 1 0 7"/><path d="M9.2 6.5a9.5 9.5 0 0 1 0 11"/><path d="M12.4 4.5a13 13 0 0 1 0 15"/><rect x="15.5" y="6" width="6" height="12" rx="1.5"/></svg>`;
-  const okIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
-  const thumbsHTML = () => `<div class="thumbs">
-      <div class="thumb">${jersey(false)}${photo("hero","Front of jersey")}<i>Front</i></div>
-      <div class="thumb"><svg viewBox="0 0 300 330">${backJersey()}</svg>${photo("back","Back of jersey")}<i>Back</i></div>
-      <div class="thumb"><svg viewBox="0 0 120 60"><path d="M8 40 C26 14 30 50 46 28 C54 18 58 44 70 30 C80 18 86 40 104 24" fill="none" stroke="#c9a961" stroke-width="4" stroke-linecap="round"/></svg>${photo("sig","Signature close-up")}<i>Signature</i></div>
-      <div class="thumb"><svg viewBox="0 0 60 60"><rect x="10" y="20" width="40" height="20" rx="4" fill="#c9a961"/><circle cx="30" cy="30" r="5" fill="#0a0a0a"/></svg>${photo("tag","Authentication tag")}<i>Tag</i></div>
-    </div>`;
-  function backJersey(){
-    return `<path d="M92 18 Q150 40 208 18 L250 34 Q238 92 262 120 L262 312 Q150 326 38 312 L38 120 Q62 92 50 34 Z" fill="#6e1a1f" stroke="#f5f2ec" stroke-width="6"/>
-      <text x="150" y="110" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="36" fill="#f5f2ec" letter-spacing="3">LALANNE</text>
-      <text x="150" y="240" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="120" fill="#f5f2ec">25</text>`;
-  }
-  const stepper = (n, total=5) => `<div class="stepper" aria-label="Step ${n} of ${total}">${Array.from({length:total},(_,i)=>`<span class="${i<n?"on":""}"></span>`).join("")}</div>`;
+  // ================= render =================
+  const ORDER_A = ["home","verify","document","tag","terms","mint","dash"];
+  const ORDER_F = ["drop","checkout","arrived","scan","record","collection","resell","sold"];
 
-  // ---------- render ----------
+  function go(side, screen){
+    const order = side === "athlete" ? ORDER_A : ORDER_F;
+    const cur = side === "athlete" ? S.a : S.f;
+    lastDir = order.indexOf(screen) >= order.indexOf(cur) ? 1 : -1;
+    if (side === "athlete") S.a = screen; else S.f = screen;
+    S.side = side; render();
+  }
+
   function render(){
-    document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.side === S.side)));
+    document.querySelectorAll(".mode button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.side === S.side)));
+    const tabs = $("#tabs"); tabs.hidden = !(S.side === "fan" && S.minted);
+    const tabFor = {drop:"drop",checkout:"drop",arrived:"drop",scan:"scan",record:"collection",collection:"collection",resell:"collection",sold:"collection"};
+    tabs.querySelectorAll("button").forEach(b => b.setAttribute("aria-current", S.side === "fan" && tabFor[S.f] === b.dataset.tab ? "page" : "false"));
     const el = $("#screen");
     el.innerHTML = S.side === "athlete" ? athleteView() : fanView();
-    el.classList.remove("fade"); void el.offsetWidth; el.classList.add("fade");
+    el.classList.remove("enter","enter-back"); void el.offsetWidth; el.classList.add(lastDir < 0 ? "enter-back" : "enter");
     el.scrollTop = 0;
-    bind(el);
+    $("#ledgerCount").textContent = S.ledger.length;
+    bind(el); save();
   }
+  const progress = n => `<div class="progress" aria-label="Step ${n} of 5">${[1,2,3,4,5].map(i => `<span class="${i<=n?"on":""}"></span>`).join("")}</div>`;
+  const check = (t, s, state) => `<div class="check ${state||""}"><div class="tick">${I.check}</div><div><b>${t}</b><small>${s}</small></div></div>`;
 
-  // ===== ATHLETE =====
+  // ---------- athlete ----------
   function athleteView(){
-    switch(S.a){
+    switch (S.a){
       case "home": return `
-        <div><div class="eyebrow">Athlete studio</div><h2>Welcome back, Cady.</h2></div>
-        <p class="muted">Turn a real item into a verified PROOVD record your fans can buy, scan and resell. Here's your pilot item.</p>
-        <div class="hero-item">${jersey()}${photo("hero","Signed jersey in display frame")}<span class="corner badge">Pilot item</span></div>
-        <div class="card">
-          <div class="kv"><span>Item</span><span>UMass Senior Night jersey</span></div>
+        <div><div class="eyebrow">Athlete studio</div><h2>Welcome back,<br><span>Cady.</span></h2></div>
+        ${photo("hero","hero","Signed ivory number 25 jersey in a black shadow box", `<span class="pill tl">Pilot item</span>`)}
+        <div class="list">
+          <div class="kv"><span>Item</span><span>Senior Night jersey · No. 25</span></div>
           <div class="kv"><span>Year</span><span>2015</span></div>
-          <div class="kv"><span>Status</span><span class="${S.minted?"":"muted"}">${S.minted?"Tokenized · Record #0001":"Not yet tokenized"}</span></div>
+          <div class="kv"><span>Status</span><span class="${S.minted?"okc":"muted"}">${S.minted?"Tokenized · " + SERIAL:"Not tokenized"}</span></div>
         </div>
         ${S.minted
-          ? `<button class="btn" data-go="a:dash">Open my dashboard</button><button class="btn ghost" data-side-go="fan">See it in the fan app →</button>`
-          : `<button class="btn" data-go="a:verify">Tokenize this item</button><p class="small muted" style="text-align:center;margin:0">4 steps · about 60 seconds</p>`}`;
+          ? `<button class="btn" data-go="athlete:dash">Open dashboard ${I.arrow}</button><button class="link center" data-go="fan:drop">View it as a collector ↗</button>`
+          : `<button class="btn" data-go="athlete:verify">Tokenize this item ${I.arrow}</button><p class="small muted" style="text-align:center">Four steps · about a minute</p>`}`;
 
       case "verify": return `
-        ${stepper(1)}
-        <div><div class="eyebrow">Step 1 · Verify the athlete</div><h2>Prove it's really you.</h2></div>
-        <div class="card" id="checks">
-          ${check("Identity","Government ID + live selfie match", S.verified)}
-          ${check("Right to sell","Ownership attestation for this item", S.verified)}
-          ${check("NIL permission","Athlete-signed use of name & likeness", S.verified)}
+        ${progress(1)}
+        <div><div class="eyebrow">01 / Verify the athlete</div><h2>Prove it's <span>really you.</span></h2></div>
+        <div class="checks" id="checks">
+          ${check("Identity","Government ID matched to a live selfie", S.verified?"done":"")}
+          ${check("Right to sell","Signed ownership attestation for this item", S.verified?"done":"")}
+          ${check("NIL permission","Athlete-signed use of name and likeness", S.verified?"done":"")}
         </div>
-        ${S.verified ? `<button class="btn" data-go="a:document">Continue</button>` : `<button class="btn" id="runVerify">Run verification</button>`}`;
+        ${S.verified ? `<button class="btn" data-go="athlete:document">Continue ${I.arrow}</button>` : `<button class="btn" id="runVerify">Run verification</button>`}`;
 
       case "document": return `
-        ${stepper(2)}
-        <div><div class="eyebrow">Step 2 · Document the item</div><h2>Capture the evidence and the story.</h2></div>
-        ${thumbsHTML()}
-        <div class="card">
+        ${progress(2)}
+        <div><div class="eyebrow">02 / Document the item</div><h2>Evidence, <span>and the story.</span></h2></div>
+        <div class="thumbs">
+          ${photo("hero","","Front", `<span class="cap">Front</span>`)}
+          ${photo("back","","Back", `<span class="cap">Back</span>`)}
+          ${photo("sig","","Signature", `<span class="cap">Signature</span>`)}
+          ${photo("tag","","Collar tag", `<span class="cap">Tag</span>`)}
+        </div>
+        <div class="list">
           <div class="kv"><span>Item</span><span>Home jersey · No. 25</span></div>
           <div class="kv"><span>Occasion</span><span>Senior Night · Mullins Center</span></div>
           <div class="kv"><span>Type</span><span>Team-issued, ceremonial</span></div>
-          <div class="kv"><span>Signed</span><span>Yes · by Cady Lalanne</span></div>
+          <div class="kv"><span>Signed</span><span>Gold marker · Cady Lalanne</span></div>
         </div>
-        <label for="story" class="eyebrow" style="margin-bottom:-6px">The athlete's story</label>
+        <label class="eyebrow" for="story">The athlete's story</label>
         <textarea id="story" maxlength="400">${esc(S.story)}</textarea>
-        <button class="btn" id="saveDoc">Save evidence & continue</button>`;
+        <button class="btn" id="saveDoc">Save evidence ${I.arrow}</button>`;
 
       case "tag": return `
-        ${stepper(3)}
-        <div><div class="eyebrow">Step 3 · Link the physical tag</div><h2>Bind the jersey to its record.</h2></div>
-        <div class="banner">${photo("tag","Authentication tag sewn into the collar")}</div>
-        <p class="muted">A PROOVD tag is sewn into the collar: a QR code plus a tap chip. Scan it to link this exact jersey.</p>
-        <div class="tap"><div class="ring ${S.tagged?"ok":""}" id="ring"><div class="core">${S.tagged?okIcon+"<span>Linked</span>":nfc+"<span>Hold near tag</span>"}</div></div></div>
+        ${progress(3)}
+        <div><div class="eyebrow">03 / Bind the tag</div><h2>Link this exact <span>jersey.</span></h2></div>
+        ${photo("tag","wide","PROOVD tag sewn inside the collar")}
+        <p class="muted">A woven PROOVD tag is sewn into the collar: a QR code plus a tap chip. Scan it to bind this jersey to its record.</p>
+        <div class="scan"><div class="ring ${S.tagged?"ok":""}" id="ring"><span class="c2"></span><span class="beam"></span>
+          <div class="core">${S.tagged ? `<span class="okmark">${I.check}</span>Bound` : `${qrImg()}Tag ${SERIAL}`}</div></div></div>
         ${S.tagged
-          ? `<div class="card"><div class="kv"><span>Tag ID</span><span class="mono">${S.tagId}</span></div><div class="kv"><span>Signature</span><span style="color:var(--ok)">Valid · cloned tags fail</span></div></div><button class="btn" data-go="a:terms">Continue</button>`
-          : `<button class="btn" id="tapTag">Tap tag</button>`}`;
+          ? `<div class="list"><div class="kv"><span>Tag</span><span class="mono">${S.tagId}</span></div><div class="kv"><span>Chip signature</span><span class="okc">Valid · clones fail</span></div></div><button class="btn" data-go="athlete:terms">Continue ${I.arrow}</button>`
+          : `<button class="btn" id="tapTag">Scan tag</button>`}`;
 
-      case "terms": {
-        const a = Math.round(PRICE*ATH), p = PRICE - a;
-        return `
-        ${stepper(4)}
-        <div><div class="eyebrow">Step 4 · Set the drop</div><h2>One of one. Your terms.</h2></div>
-        <div class="card">
+      case "terms": return `
+        ${progress(4)}
+        <div><div class="eyebrow">04 / Set the drop</div><h2>One of one. <span>Your terms.</span></h2></div>
+        <div class="list">
           <div class="kv"><span>Edition</span><span>1 of 1</span></div>
           <div class="kv"><span>Price</span><span>${money(PRICE)}</span></div>
-          <div class="kv"><span>Resale royalty to you</span><span class="gold" style="color:var(--gold)">5% on every resale</span></div>
+          <div class="kv"><span>Your resale royalty</span><span class="gold">5% on every resale</span></div>
         </div>
-        <div class="card">
-          <h3>Each sale</h3>
-          <div class="split"><span style="flex:${ATH};background:var(--gold)"></span><span style="flex:${1-ATH};background:var(--bone)"></span></div>
+        <div><div class="eyebrow" style="margin-bottom:10px">Each sale</div>
+          <div class="split"><span style="flex:70;background:var(--gold)"></span><span style="flex:30;background:var(--bone)"></span></div>
           <div class="legend">
-            <div><span><i style="background:var(--gold)"></i>You (70%)</span><b>${money(a)}</b></div>
-            <div><span><i style="background:var(--bone)"></i>PROOVD (30%)</span><b>${money(p)}</b></div>
-          </div>
-        </div>
-        <button class="btn" data-go="a:mint">Tokenize item</button>`;
-      }
+            <div><span><i style="background:var(--gold)"></i>You · 70%</span><b>${money(PRICE*ATH)}</b></div>
+            <div><span><i style="background:var(--bone)"></i>PROOVD · 30%</span><b>${money(PRICE*(1-ATH))}</b></div>
+          </div></div>
+        <button class="btn" id="mintBtn">Tokenize item</button>`;
 
       case "mint": return `
-        ${stepper(5)}
-        <div><div class="eyebrow">Tokenizing</div><h2 id="mintTitle">${S.minted?"Record created.":"Creating the record…"}</h2></div>
-        ${S.minted ? certHTML() : `<div class="term" id="term"></div>`}
-        ${S.minted ? `<button class="btn" data-side-go="fan">Open the drop as a fan →</button><button class="btn ghost" data-go="a:dash">My dashboard</button>` : ``}`;
+        ${progress(5)}
+        <div><div class="eyebrow">05 / Tokenize</div><h2>${S.minted ? `Record <span>created.</span>` : `Creating <span>the record…</span>`}</h2></div>
+        ${S.minted ? cert() + `<button class="btn" data-go="fan:drop">Open the drop as a collector ${I.arrow}</button><button class="link center" data-go="athlete:dash">My dashboard</button>`
+                   : `<div class="console" id="console"></div><div class="bar"><i id="mintBar"></i></div>`}`;
 
-      case "dash": {
-        const total = S.earnings.primary + S.earnings.royalty;
-        return `
-        <div><div class="eyebrow">Dashboard</div><h2>Cady Lalanne</h2><p class="muted small" style="margin:4px 0 0">Spurs pick 55 · Verified athlete</p></div>
-        <div class="card"><span class="muted small">Earned on PROOVD</span><span class="big" style="color:var(--gold)">${money(total)}</span></div>
-        <div class="grid2">
-          <div class="stat"><b>${money(S.earnings.primary)}</b><span>First sale (70%)</span></div>
-          <div class="stat"><b>${money(S.earnings.royalty)}</b><span>Resale royalties (5%)</span></div>
+      case "dash": return `
+        <div><div class="eyebrow">Dashboard</div><h2>Cady <span>Lalanne</span></h2><p class="small muted" style="margin-top:6px">Spurs pick 55 · Verified athlete</p></div>
+        <div><div class="eyebrow" style="color:var(--muted)">Earned on PROOVD</div><div class="stat-big">${money(S.earnings.primary + S.earnings.royalty)}</div></div>
+        <div class="grid2"><div><b>${money(S.earnings.primary)}</b><span>First sale · 70%</span></div><div><b>${money(S.earnings.royalty)}</b><span>Royalties · 5%</span></div></div>
+        <div class="list">
+          <div class="kv"><span>Record</span><span class="mono">${SERIAL}</span></div>
+          <div class="kv"><span>Status</span><span class="${S.minted?"okc":""}">${S.resold?"Resold · owner #2":S.scanned?"Owned by collector #1":S.bought?"Sold · in transit":S.minted?"Live":"Draft"}</span></div>
+          <div class="kv"><span>Owners so far</span><span>${Math.max(0, S.timeline.length - 1)}</span></div>
         </div>
-        <div class="card">
-          <div class="row"><h3>Record #0001</h3><span class="badge ${S.minted?"ok":""}">${S.resold?"Resold":S.bought?"Sold":S.minted?"Live":"Draft"}</span></div>
-          <div class="kv"><span>Item</span><span>UMass Senior Night jersey</span></div>
-          <div class="kv"><span>Owners so far</span><span>${S.timeline.length ? S.timeline.length - 1 : 0}</span></div>
-          <div class="kv"><span>Token</span><span class="mono">${S.tokenId||"—"}</span></div>
-        </div>
-        ${!S.bought ? `<button class="btn" data-side-go="fan">Buy it as a fan →</button>` : !S.resold ? `<button class="btn" data-side-go="fan">Resell it as the fan →</button>` : `<p class="muted small" style="margin:0">The jersey changed hands twice. The record followed it both times, and Cady got paid both times.</p>`}`;
-      }
+        ${!S.minted ? `<button class="btn" data-go="athlete:verify">Tokenize this item ${I.arrow}</button>`
+          : !S.bought ? `<button class="btn" data-go="fan:drop">Buy it as a collector ${I.arrow}</button>`
+          : !S.resold ? `<button class="btn" data-go="fan:${S.scanned?"resell":"arrived"}">Continue as the collector ${I.arrow}</button>`
+          : `<p class="muted">The jersey changed hands twice. The record followed it both times, and Cady was paid both times. No re-authentication needed.</p>`}`;
     }
     return "";
   }
-  function check(t, s, done){ return `<div class="check ${done?"done":""}"><div class="tick">✓</div><div><b>${t}</b><small>${s}</small></div></div>`; }
-  function certHTML(){
+  function cert(){
     return `<div class="cert">
-      <div class="row"><span class="eyebrow">PROOVD record</span><span class="badge ok">Verified</span></div>
-      <div class="num">#0001</div>
-      <div><b>UMass Senior Night Jersey</b><div class="muted small">Signed by Cady Lalanne · 1 of 1</div></div>
-      <div class="kv"><span>Token ID</span><span class="mono">${S.tokenId}</span></div>
-      <div class="kv"><span>Record hash</span><span class="mono">${short(S.recordHash)}</span></div>
-      <div class="kv"><span>Tag</span><span class="mono">${S.tagId}</span></div>
-      <div class="kv"><span>Ledger block</span><span class="mono">${S.block.toLocaleString("en-US")}</span></div>
-    </div>`;
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="eyebrow">PROOVD record</span><span class="pill ok">${I.check}Verified</span></div>
+      <div class="num">${SERIAL}</div>
+      <div><b>Senior Night Jersey · No. 25</b><div class="small muted">Signed by Cady Lalanne · 1 of 1</div></div>
+      <div class="list">
+        <div class="kv"><span>Token</span><span class="mono">${S.tokenId}</span></div>
+        <div class="kv"><span>Record hash</span><span class="mono">${short(S.recordHash)}</span></div>
+        <div class="kv"><span>Tag</span><span class="mono">${S.tagId}</span></div>
+        <div class="kv"><span>Block</span><span class="mono">${(S.block||0).toLocaleString("en-US")}</span></div>
+      </div></div>`;
   }
 
-  // ===== FAN =====
+  // ---------- collector ----------
   function fanView(){
-    if(!S.minted) return `
-      <div><div class="eyebrow">Fan app</div><h2>This drop isn't live yet.</h2></div>
-      <p class="muted">Cady hasn't tokenized the jersey. Do it in the Athlete studio (60 seconds), or skip ahead with a pre-made record.</p>
-      <div class="hero-item">${jersey()}${photo("hero","Signed jersey in display frame")}</div>
-      <button class="btn" data-side-go="athlete">Tokenize it first</button>
-      <button class="btn ghost" id="skipMint">Skip: use a pre-made record</button>`;
+    if (!S.minted) return `
+      <div><div class="eyebrow">Collector app</div><h2>This drop <span>isn't live yet.</span></h2></div>
+      ${photo("hero","hero","Signed jersey")}
+      <p class="muted">Cady hasn't tokenized the jersey. Do it in the Athlete studio (about a minute), or load a finished record.</p>
+      <button class="btn" data-go="athlete:verify">Tokenize it first ${I.arrow}</button>
+      <button class="link center" id="skipMint">Skip: load a finished record</button>`;
 
-    switch(S.f){
+    switch (S.f){
       case "drop": return `
-        <div class="hero-item">${jersey()}${photo("hero","Signed jersey in display frame")}<span class="corner badge ok">✓ Verified athlete</span><span class="corner2 badge">1 of 1</span></div>
-        <div><div class="eyebrow">Cady Lalanne · Spurs pick 55</div><h2>UMass Senior Night Jersey, signed</h2></div>
-        <div class="story arena">
-          <div class="row" style="justify-content:flex-start"><button class="play" id="playStory" aria-label="Play Cady's story">▶</button><div><b>Cady's story</b><div class="muted small">In his words · 0:45</div></div></div>
-          <p class="quote" id="quote" style="margin:0">“${esc(S.story.split(". ")[0])}.”</p>
-        </div>
-        <div class="card">
+        ${S.scannedVisit ? "" : ""}
+        ${photo("hero","hero","Signed ivory number 25 jersey in a black shadow box", `<span class="pill ok tl">${I.check}Verified athlete</span><span class="pill tr">1 of 1</span>`)}
+        <div><div class="eyebrow">Cady Lalanne · Spurs pick 55</div><h2>Senior Night Jersey, <span>signed.</span></h2></div>
+        ${storyCard()}
+        <div class="list">
           <div class="kv"><span>Evidence</span><span>4 photos · signature · tag</span></div>
-          <div class="kv"><span>Record</span><span class="mono">#0001 · ${S.tokenId}</span></div>
+          <div class="kv"><span>Record</span><span class="mono">${SERIAL}</span></div>
           <div class="kv"><span>Athlete royalty</span><span>5% on every resale</span></div>
         </div>
-        ${S.bought ? `<button class="btn" data-go="f:record">You own this · view record</button>` : `<div class="row"><span class="big">${money(PRICE)}</span><span class="muted small">Ships with its PROOVD tag</span></div><button class="btn" data-go="f:checkout">Buy now</button>`}`;
+        ${S.bought ? `<button class="btn" data-go="fan:record">You own this · view record ${I.arrow}</button>`
+          : `<div class="price"><b>${money(PRICE)}</b><span class="small muted">Ships with its PROOVD tag</span></div><button class="btn" data-go="fan:checkout">Buy now</button>`}`;
 
-      case "checkout": {
-        const a = Math.round(PRICE*ATH), p = PRICE-a;
-        return `
-        <div><div class="eyebrow">Checkout</div><h2>One item. One record.</h2></div>
-        <div class="card row" style="flex-direction:row"><div class="mini">${jersey()}${photo("hero","Jersey")}</div><div style="flex:1"><b>UMass Senior Night Jersey</b><div class="muted small">Signed · 1 of 1 · Record #0001</div></div><b>${money(PRICE)}</b></div>
-        <div class="card">
-          <h3>Where your ${money(PRICE)} goes</h3>
-          <div class="split"><span style="flex:${ATH};background:var(--gold)"></span><span style="flex:${1-ATH};background:var(--bone)"></span></div>
+      case "checkout": return `
+        <div><div class="eyebrow">Checkout</div><h2>One item. <span>One record.</span></h2></div>
+        <div style="display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--line)">
+          ${photo("hero","sq","Jersey")}<div><b>Senior Night Jersey</b><div class="small muted">Signed · 1 of 1 · ${SERIAL}</div></div><b style="font-family:var(--serif);font-weight:400;font-size:20px">${money(PRICE)}</b></div>
+        <div><div class="eyebrow" style="margin-bottom:10px">Where your ${money(PRICE)} goes</div>
+          <div class="split"><span style="flex:70;background:var(--gold)"></span><span style="flex:30;background:var(--bone)"></span></div>
           <div class="legend">
-            <div><span><i style="background:var(--gold)"></i>Cady Lalanne</span><b>${money(a)}</b></div>
-            <div><span><i style="background:var(--bone)"></i>PROOVD</span><b>${money(p)}</b></div>
-          </div>
-        </div>
-        <div class="card"><div class="kv"><span>Payment</span><span>Demo card •••• 4242</span></div><div class="kv"><span>Ship to</span><span>Demo address</span></div></div>
-        <button class="btn" id="pay">Pay ${money(PRICE)} (demo)</button>
-        <p class="small muted" style="margin:0;text-align:center">Demo only. No real charge.</p>`;
-      }
+            <div><span><i style="background:var(--gold)"></i>Cady Lalanne</span><b>${money(PRICE*ATH)}</b></div>
+            <div><span><i style="background:var(--bone)"></i>PROOVD</span><b>${money(PRICE*(1-ATH))}</b></div>
+          </div></div>
+        <div class="list"><div class="kv"><span>Payment</span><span>Demo card •••• 4242</span></div><div class="kv"><span>Ship to</span><span>Miami, FL</span></div></div>
+        <button class="btn" id="pay">Pay ${money(PRICE)}</button>
+        <p class="small muted" style="text-align:center">Demo checkout. No card is charged.</p>`;
 
       case "arrived": return `
-        <div><div class="eyebrow">Delivered</div><h2>Your jersey arrived.</h2></div>
-        <p class="muted">Before you hang it up, scan the tag. It proves this is the exact jersey on record #0001 and moves the record into your name.</p>
-        <div class="hero-item">${jersey()}${photo("hero","Signed jersey in display frame")}</div>
-        <button class="btn" data-go="f:scan">Scan to verify</button>`;
+        <div><div class="eyebrow">Delivered</div><h2>Your jersey <span>arrived.</span></h2></div>
+        ${photo("box","hero","Jersey arriving in a black PROOVD presentation box")}
+        <p class="muted">Before you frame it, scan the collar tag. It proves this is the exact jersey on record ${SERIAL} and moves the record into your name.</p>
+        <button class="btn" data-go="fan:scan">Verify my jersey ${I.arrow}</button>`;
 
-      case "scan": return `
-        <div class="banner">${photo("tap","Phone tapping the jersey tag")}</div>
-        <div><div class="eyebrow">Verify</div><h2 id="scanTitle">${S.scanned?"Authentic.":"Scan the tag in the collar."}</h2></div>
-        <div class="tap"><div class="ring ${S.scanned?"ok":""}" id="ring2"><div class="core">${S.scanned?okIcon+"<span>Verified</span>":nfc+"<span>Scan the collar tag</span>"}</div></div></div>
+      case "scan":
+        if (!S.bought) return `
+          <div><div class="eyebrow">Verify</div><h2>Scan any <span>PROOVD tag.</span></h2></div>
+          ${photo("tap","wide","Phone scanning the collar tag")}
+          <p class="muted">Buy the drop first, then verify it here when it arrives. Or scan the QR on the desktop page with your real phone.</p>
+          <button class="btn" data-go="fan:drop">Go to the drop ${I.arrow}</button>`;
+        return `
+        ${photo("tap","wide","Phone scanning the PROOVD tag in the collar")}
+        <div><div class="eyebrow">Verify</div><h2>${S.scanned ? `<span>Authentic.</span>` : `Scan the tag <span>in the collar.</span>`}</h2></div>
         ${S.scanned ? `
-          <div class="card" id="vchecks">
-            ${check("Tag signature valid","Tag " + S.tagId + " is genuine", true)}
-            ${check("Matches record #0001","Photos, signature and story on file", true)}
-            ${check("Signed by Cady Lalanne","Verified athlete · NIL permission on file", true)}
-            ${check("Ownership moved to you","Transfer written to the record", true)}
+          <div class="checks">
+            ${check("Tag signature valid", "Chip " + S.tagId + " is genuine", "done")}
+            ${check("Matches " + SERIAL, "Photos, signature and story on file", "done")}
+            ${check("Signed by Cady Lalanne", "Verified athlete · NIL permission on file", "done")}
+            ${check("Ownership moved to you", "Transfer written to the record", "done")}
           </div>
-          <button class="btn" data-go="f:record">View the full record</button>`
-        : `<div class="card" id="vchecks" hidden></div><button class="btn" id="scanBtn">Scan tag</button>`}`;
+          <button class="btn" data-go="fan:record">View the full record ${I.arrow}</button>`
+        : `<div class="scan"><div class="ring" id="ring2"><span class="c2"></span><span class="beam"></span><div class="core">${qrImg()}Hold steady</div></div></div>
+          <button class="btn" id="scanBtn">Scan tag</button>`}`;
 
       case "record": return `
-        <div class="row"><div><div class="eyebrow">Record #0001</div><h2>Chain of title</h2></div><span class="badge ok">✓ Authentic</span></div>
-        <div class="card"><div class="tl">${S.timeline.map((t,i)=>`
-          <div class="tl-item ${i===S.timeline.length-1?"new":""}"><div class="tl-dot">${i+1}</div><div><b>${esc(t.title)}</b><small>${esc(t.sub)}</small><div class="mono" style="color:var(--muted);margin-top:2px">${short(t.hash)}</div></div></div>`).join("")}
-        </div></div>
-        <div class="story arena"><span class="eyebrow">The story travels with it</span><p style="margin:0" class="small">${esc(S.story)}</p></div>
-        <div class="card">
-          <div class="kv"><span>Token ID</span><span class="mono">${S.tokenId}</span></div>
+        ${S.scannedVisit ? `<div class="banner-scan">${I.shield}<span>You scanned a PROOVD tag. This jersey is authentic.</span></div>` : ""}
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px"><div><div class="eyebrow">Record ${SERIAL}</div><h2>Chain <span>of title.</span></h2></div><span class="pill ok">${I.check}Authentic</span></div>
+        ${photo("hero","hero","The jersey on record")}
+        <div class="tl">${S.timeline.map((t,i) => `
+          <div class="tl-item ${i===S.timeline.length-1 && i>0 ?"new":""}"><span class="tl-num">${String(i+1).padStart(2,"0")}</span><div><b>${esc(t.title)}</b><small>${esc(t.sub)}</small><span class="mono" style="color:var(--dim)">${short(t.hash)}</span></div></div>`).join("")}
+        </div>
+        ${storyCard(true)}
+        <div class="list">
+          <div class="kv"><span>Token</span><span class="mono">${S.tokenId}</span></div>
           <div class="kv"><span>Tag</span><span class="mono">${S.tagId}</span></div>
           <div class="kv"><span>Record hash</span><span class="mono">${short(S.recordHash)}</span></div>
         </div>
-        ${S.resold ? `<button class="btn" data-side-go="athlete" data-a="dash">See what Cady earned →</button>` : `<button class="btn" data-go="f:resell">Resell this jersey</button><button class="btn ghost" data-go="f:collection">My collection</button>`}`;
+        ${S.scannedVisit ? `<a class="btn" style="text-decoration:none" href="https://getproovd.com">Learn about PROOVD ${I.arrow}</a>`
+          : S.resold ? `<button class="btn" data-go="athlete:dash">See what Cady earned ${I.arrow}</button>`
+          : S.scanned ? `<button class="btn" data-go="fan:resell">Resell this jersey</button>` : `<button class="btn" data-go="fan:scan">Verify my jersey ${I.arrow}</button>`}`;
 
       case "collection": return `
-        <div><div class="eyebrow">My collection</div><h2>${S.resold?"Sold items":"1 verified item"}</h2></div>
-        <div class="grid2">
-          <button class="stat" data-go="f:record" style="text-align:left;border-color:var(--gold-soft)"><div class="mini" style="width:100%;height:auto;aspect-ratio:1">${jersey()}${photo("hero","Jersey")}</div><b style="font-size:15px;color:var(--bone);font-family:var(--body)">Senior Night Jersey</b><span>${S.resold?"Sold · record moved":"✓ Verified · #0001"}</span></button>
-          <div class="stat" style="justify-content:center;align-items:center;text-align:center;border-style:dashed"><span>Next drop<br>coming soon</span></div>
-        </div>
-        ${S.resold?"":`<button class="btn" data-go="f:resell">Resell</button>`}`;
+        <div><div class="eyebrow">My collection</div><h2>${S.resold ? `Sold <span>items</span>` : S.bought ? `1 verified <span>item</span>` : `Nothing <span>yet.</span>`}</h2></div>
+        ${S.bought ? `<button data-go="fan:record" style="text-align:left;display:flex;flex-direction:column;gap:10px">
+            ${photo("hero","hero","Jersey")}
+            <div style="display:flex;justify-content:space-between;width:100%;gap:10px"><div><b>Senior Night Jersey</b><div class="small muted">${S.resold ? "Sold · record moved to owner #2" : S.scanned ? "Verified · " + SERIAL : "In transit · verify on arrival"}</div></div><span class="gold">↗</span></div>
+          </button>` : `<p class="muted">Items you buy show up here with their full record.</p><button class="btn" data-go="fan:drop">Browse the drop ${I.arrow}</button>`}`;
 
       case "resell": {
-        const r = S.resalePrice, roy = Math.round(r*ROY), fee = Math.round(r*PFEE), net = r-roy-fee;
+        const r = S.resalePrice, roy = r*ROY, fee = r*PFEE, net = r - roy - fee;
         return `
-        <div><div class="eyebrow">Resell</div><h2>Sell it. The record goes with it.</h2></div>
-        <div class="chips" role="group" aria-label="Resale price">${[900,1200,1500].map(v=>`<button class="chip" data-price="${v}" aria-pressed="${v===r}">${money(v)}</button>`).join("")}</div>
-        <div class="card">
-          <div class="kv"><span>Buyer pays</span><b>${money(r)}</b></div>
-          <div class="kv"><span>Cady's royalty (5%)</span><span style="color:var(--gold)">${money(roy)}</span></div>
-          <div class="kv"><span>PROOVD fee (proposed 10%)</span><span>${money(fee)}</span></div>
-          <div class="kv"><span>You receive</span><b>${money(net)}</b></div>
-        </div>
-        <div class="split"><span style="flex:${net};background:var(--bone)"></span><span style="flex:${roy};background:var(--gold)"></span><span style="flex:${fee};background:var(--gold-soft)"></span></div>
-        <p class="small muted" style="margin:0">On a counterfeit, there's no record to transfer, so it can't be listed here.</p>
+        <div><div class="eyebrow">Resell</div><h2>Sell it. <span>The record goes too.</span></h2></div>
+        <div class="chips" role="group" aria-label="Resale price">${[900,1200,1500].map(v => `<button class="chip" data-price="${v}" aria-pressed="${v===r}">${money(v)}</button>`).join("")}</div>
+        <div><div class="split"><span style="flex:${net};background:var(--bone)"></span><span style="flex:${roy};background:var(--gold)"></span><span style="flex:${fee};background:var(--gold-d)"></span></div>
+          <div class="legend">
+            <div><span><i style="background:var(--bone)"></i>You receive</span><b>${money(net)}</b></div>
+            <div><span><i style="background:var(--gold)"></i>Cady's royalty · 5%</span><b class="gold">${money(roy)}</b></div>
+            <div><span><i style="background:var(--gold-d)"></i>PROOVD fee · proposed 10%</span><b>${money(fee)}</b></div>
+          </div></div>
+        <p class="small muted">Only items with a live PROOVD record can be listed. A counterfeit has no record to transfer.</p>
         <button class="btn" id="list">List for ${money(r)}</button>`;
       }
 
       case "sold": {
-        const roy = Math.round(S.resalePrice*ROY);
+        const roy = S.resalePrice*ROY;
         return `
-        <div><div class="eyebrow">Sold</div><h2>Sold to @mike_hoops.</h2></div>
+        <div><div class="eyebrow">Sold</div><h2>Sold to <span>Collector #2.</span></h2></div>
         <div class="cert">
-          <div class="row"><span class="eyebrow">Paid automatically</span><span class="badge ok">Done</span></div>
-          <div class="kv"><span>Royalty to Cady Lalanne</span><b style="color:var(--gold)">${money(roy)}</b></div>
-          <div class="kv"><span>New owner</span><span>@mike_hoops · owner #2</span></div>
-          <div class="kv"><span>Record</span><span class="mono">#0001 · updated</span></div>
-        </div>
-        <p class="muted">The jersey changed hands. The story, the evidence and the athlete's cut went with it. No one had to re-authenticate anything.</p>
-        <button class="btn" data-go="f:record">See the updated record</button>
-        <button class="btn ghost" data-side-go="athlete" data-a="dash">See Cady's dashboard →</button>`;
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="eyebrow">Settled automatically</span><span class="pill ok">${I.check}Done</span></div>
+          <div class="list">
+            <div class="kv"><span>Sale price</span><span>${money(S.resalePrice)}</span></div>
+            <div class="kv"><span>Royalty to Cady Lalanne</span><span class="gold">${money(roy)}</span></div>
+            <div class="kv"><span>New owner</span><span>Collector #2 · Chicago, IL</span></div>
+            <div class="kv"><span>Record</span><span class="mono">${SERIAL} · updated</span></div>
+          </div></div>
+        <p class="muted">The jersey changed hands. The story, the evidence and the athlete's cut went with it. Nobody had to re-authenticate anything.</p>
+        <button class="btn" data-go="athlete:dash">See Cady's dashboard ${I.arrow}</button>
+        <button class="link center" data-go="fan:record">See the updated record</button>`;
       }
     }
     return "";
   }
 
-  // ---------- events ----------
+  function storyCard(compact){
+    return `<div class="story" style="${compact?"min-height:170px":""}">
+      ${photo("arena","","Empty arena under a single spotlight")}
+      <div class="story-bars" id="sbars">${STORY.map(() => "<span><i></i></span>").join("")}</div>
+      <p class="quote" id="quote">“${esc(STORY[0])}”</p>
+      <div class="story-meta"><span class="eyebrow" style="color:var(--muted)">In Cady's words</span><button class="play" id="playStory">${I.play}Play story</button></div>
+    </div>`;
+  }
+
+  // ================= events =================
+  let storyRun = 0;
   function bind(el){
-    el.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => {
-      const [side, scr] = b.dataset.go.split(":");
-      if(side === "a") S.a = scr; else S.f = scr;
-      render();
-      if(side === "a" && scr === "mint" && !S.minted) runMint();
-    }));
-    el.querySelectorAll("[data-side-go]").forEach(b => b.addEventListener("click", () => {
-      S.side = b.dataset.sideGo; if(b.dataset.a) S.a = b.dataset.a; render();
-    }));
-    el.querySelectorAll("[data-price]").forEach(b => b.addEventListener("click", () => { S.resalePrice = +b.dataset.price; render(); }));
-    const on = (id, fn) => { const x = el.querySelector("#"+id); if(x) x.addEventListener("click", fn); };
+    el.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { if (busy) return; const [side, scr] = b.dataset.go.split(":"); if (side === "fan") S.scannedVisit = false; go(side, scr); }));
+    el.querySelectorAll("[data-price]").forEach(b => b.addEventListener("click", () => { S.resalePrice = +b.dataset.price; lastDir = 0; render(); }));
+    const on = (id, fn) => { const x = el.querySelector("#" + id); if (x) x.addEventListener("click", fn); };
 
     on("runVerify", async e => {
-      if(S.busy) return; S.busy = true; e.target.disabled = true; e.target.textContent = "Verifying…";
-      const rows = el.querySelectorAll("#checks .check");
-      for(const r of rows){ r.classList.add("busy"); await wait(650); r.classList.remove("busy"); r.classList.add("done"); }
-      S.verified = true; S.busy = false; log("Athlete verified","Cady Lalanne · identity, right to sell, NIL permission"); await wait(250); render();
+      if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Verifying…";
+      for (const r of el.querySelectorAll("#checks .check")) { r.classList.add("busy"); await wait(700); r.classList.remove("busy"); r.classList.add("done"); }
+      S.verified = true; log("Athlete verified", "Cady Lalanne · identity, right to sell, NIL permission");
+      await wait(300); busy = false; render();
     });
     on("saveDoc", () => {
-      const t = el.querySelector("#story"); S.story = (t && t.value.trim()) || DEFAULT_STORY;
-      S.documented = true; log("Evidence captured","4 photos · signature · story (" + S.story.length + " chars)"); S.a = "tag"; render();
+      const t = el.querySelector("#story"); S.story = (t && t.value.trim()) || STORY.join(" ");
+      S.documented = true; log("Evidence sealed", "4 photos · signature · story"); go("athlete","tag");
     });
     on("tapTag", async e => {
-      if(S.busy) return; S.busy = true; e.target.disabled = true; e.target.textContent = "Reading tag…";
-      el.querySelector("#ring").classList.add("live"); await wait(1700);
-      S.tagId = "PRV-" + hex(2).toUpperCase() + "-" + hex(2).toUpperCase(); S.tagged = true; S.busy = false;
-      log("Tag linked", S.tagId + " bound to item"); render();
+      if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Reading tag…";
+      el.querySelector("#ring").classList.add("live"); await wait(1800);
+      S.tagId = "CHIP-" + hex(3).toUpperCase(); S.tagged = true; busy = false;
+      log("Tag bound", S.tagId + " → " + SERIAL); lastDir = 0; render();
     });
-    on("skipMint", async () => { quickMint(); S.f = "drop"; toast("Pre-made record #0001 loaded"); render(); });
-    on("playStory", async e => {
-      const q = el.querySelector("#quote"); const parts = S.story.split(/\.\s+/).map((x,i,a)=> i<a.length-1 ? x+"." : x);
-      e.currentTarget.disabled = true; e.currentTarget.textContent = "❚❚";
-      for(const p of parts){ q.style.opacity = 0; await wait(220); q.textContent = "“" + p + "”"; q.style.transition = "opacity .3s"; q.style.opacity = 1; await wait(1700); }
-      e.currentTarget.disabled = false; e.currentTarget.textContent = "▶";
-    });
+    on("mintBtn", () => { go("athlete","mint"); runMint(); });
+    on("skipMint", () => { quickMint(); toast("Finished record " + SERIAL + " loaded"); go("fan","drop"); });
+    on("playStory", e => playStory(el, e.currentTarget));
     on("pay", async e => {
-      if(S.busy) return; S.busy = true; e.target.disabled = true; e.target.textContent = "Processing…"; await wait(1200);
-      S.bought = true; S.busy = false; S.earnings.primary = Math.round(PRICE*ATH);
-      log("Primary sale", money(PRICE) + " · " + money(Math.round(PRICE*ATH)) + " to Cady, " + money(PRICE - Math.round(PRICE*ATH)) + " to PROOVD");
-      toast("Paid. " + money(Math.round(PRICE*ATH)) + " went to Cady."); S.f = "arrived"; render();
+      if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Processing…"; await wait(1300);
+      S.bought = true; S.earnings.primary = PRICE*ATH; busy = false;
+      log("Primary sale", money(PRICE) + " · " + money(PRICE*ATH) + " to Cady · " + money(PRICE*(1-ATH)) + " to PROOVD");
+      toast("Paid. " + money(PRICE*ATH) + " went straight to Cady."); go("fan","arrived");
     });
     on("scanBtn", async e => {
-      if(S.busy) return; S.busy = true; e.target.disabled = true; e.target.textContent = "Reading…";
-      el.querySelector("#ring2").classList.add("live"); await wait(1600);
-      S.scanned = true; S.busy = false;
-      S.timeline.push({title:"Owned by you", sub:"Bought for " + money(PRICE) + " · verified by scan · " + now(), hash:hex(32)});
-      log("Ownership transfer", "Cady Lalanne → Fan (owner #1) · tag scan matched"); render();
+      if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Reading…";
+      el.querySelector("#ring2").classList.add("live"); await wait(1700);
+      S.scanned = true; busy = false;
+      S.timeline.push({title:"Owned by Collector #1", sub:"Bought for " + money(PRICE) + " · verified by tag scan · " + stamp(), hash:hex(32)});
+      log("Ownership transfer", "Cady Lalanne → Collector #1 · tag matched record"); lastDir = 0; render();
     });
     on("list", async e => {
-      if(S.busy) return; S.busy = true; e.target.disabled = true; e.target.textContent = "Finding a buyer…"; await wait(1500);
-      const roy = Math.round(S.resalePrice*ROY);
-      S.resold = true; S.busy = false; S.earnings.royalty += roy;
-      S.timeline.push({title:"Owned by @mike_hoops", sub:"Resold for " + money(S.resalePrice) + " · " + money(roy) + " royalty to Cady · " + now(), hash:hex(32)});
-      log("Resale + royalty", money(S.resalePrice) + " · " + money(roy) + " royalty paid to Cady Lalanne"); S.f = "sold"; render();
+      if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Matching a buyer…"; await wait(1600);
+      const roy = S.resalePrice*ROY; S.resold = true; S.earnings.royalty += roy; busy = false;
+      S.timeline.push({title:"Owned by Collector #2", sub:"Resold for " + money(S.resalePrice) + " · " + money(roy) + " royalty to Cady · " + stamp(), hash:hex(32)});
+      log("Resale settled", money(S.resalePrice) + " · " + money(roy) + " royalty paid to Cady Lalanne"); go("fan","sold");
     });
   }
 
+  async function playStory(el, btn){
+    const run = ++storyRun; const q = el.querySelector("#quote"); const bars = el.querySelectorAll("#sbars i");
+    if (!q) return;
+    btn.innerHTML = I.pause + "Playing";
+    bars.forEach(b => { b.style.transition = "none"; b.style.width = "0"; });
+    for (let i = 0; i < STORY.length; i++){
+      if (run !== storyRun || !document.body.contains(q)) return;
+      q.style.opacity = 0; await wait(250); q.textContent = "“" + STORY[i] + "”"; q.style.opacity = 1;
+      const b = bars[i]; if (b){ void b.offsetWidth; b.style.transition = "width 2.4s linear"; b.style.width = "100%"; }
+      await wait(2500);
+    }
+    if (run === storyRun && document.body.contains(btn)) btn.innerHTML = I.play + "Replay";
+  }
+
   function quickMint(){
-    if(!S.tagId) S.tagId = "PRV-" + hex(2).toUpperCase() + "-" + hex(2).toUpperCase();
+    if (!S.tagId) S.tagId = "CHIP-" + hex(3).toUpperCase();
     S.verified = S.documented = S.tagged = true;
-    S.tokenId = "PRV-0001-" + hex(3).toUpperCase(); S.recordHash = hex(32); S.block = 8400000 + (parseInt(hex(2),16) % 9000);
+    S.tokenId = SERIAL + "-" + hex(3).toUpperCase(); S.recordHash = hex(32); S.block = 8412000 + (parseInt(hex(2),16) % 9000);
     S.minted = true;
-    S.timeline = [{title:"Created by Cady Lalanne", sub:"Tokenized · 1 of 1 · " + now(), hash:S.recordHash}];
-    if(!S.ledger.some(l => l.type === "Token issued")){
-      if(!S.ledger.length){ log("Athlete verified","Cady Lalanne · identity, right to sell, NIL permission"); log("Evidence captured","4 photos · signature · story"); log("Tag linked", S.tagId + " bound to item"); }
-      log("Token issued", S.tokenId + " · record #0001 · block " + S.block.toLocaleString("en-US"));
+    S.timeline = [{title:"Created by Cady Lalanne", sub:"Tokenized · 1 of 1 · " + stamp(), hash:S.recordHash}];
+    if (!S.ledger.some(l => l.type === "Record created")){
+      if (!S.ledger.length){ log("Athlete verified","Cady Lalanne · identity, right to sell, NIL permission"); log("Evidence sealed","4 photos · signature · story"); log("Tag bound", S.tagId + " → " + SERIAL); }
+      log("Record created", S.tokenId + " · block " + S.block.toLocaleString("en-US"));
     }
   }
 
   async function runMint(){
-    if(S.busy) return; S.busy = true;
-    const term = $("#term"); if(!term) { S.busy = false; return; }
-    const line = (t, c="") => { const d = document.createElement("div"); d.className = c; d.textContent = t; term.appendChild(d); while(term.children.length > 9) term.removeChild(term.firstChild); };
+    if (busy) return; busy = true;
+    const c = $("#console"), bar = $("#mintBar"); if (!c){ busy = false; return; }
+    const line = (t, k="") => { const d = document.createElement("div"); d.className = k; d.textContent = t; c.appendChild(d); while (c.children.length > 9) c.removeChild(c.firstChild); };
+    const blk = (8412000 + (parseInt(hex(2),16) % 9000)).toLocaleString("en-US");
     const steps = [
-      ["› hashing 4 photos + signature…",""],["  sha256 " + hex(16), ""],
-      ["› sealing story + athlete attestation…",""],["  sha256 " + hex(16), ""],
-      ["› binding tag " + (S.tagId || "PRV-tag") + "…",""],["  tag signature ok","k"],
-      ["› writing record #0001 to ledger…",""],["  block " + (8400000 + (parseInt(hex(2),16)%9000)).toLocaleString("en-US") + " confirmed","k"],
-      ["✓ token issued · 1 of 1","g"]
+      ["› hashing 4 photos + signature",""],["  sha256 " + hex(12),""],
+      ["› sealing story + athlete attestation",""],["  sha256 " + hex(12),""],
+      ["› binding " + (S.tagId||"chip") + " → " + SERIAL,""],["  chip signature ok","k"],
+      ["› writing record to ledger",""],["  block " + blk + " confirmed","k"],
+      ["✓ record created · 1 of 1","g"]
     ];
-    for(const [t,c] of steps){ line(t,c); await wait(380); }
-    await wait(400); S.busy = false; quickMint(); render();
+    for (let i = 0; i < steps.length; i++){ line(steps[i][0], steps[i][1]); if (bar) bar.style.width = ((i+1)/steps.length*100) + "%"; await wait(400); }
+    await wait(450); busy = false; quickMint(); lastDir = 0; render();
   }
 
   let toastTimer;
   function toast(msg){
-    const old = $(".toast"); if(old) old.remove();
-    const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; $("#phone").appendChild(t);
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 2600);
+    const old = $(".toast"); if (old) old.remove();
+    const t = document.createElement("div"); t.className = "toast"; t.innerHTML = I.check + "<span></span>"; t.querySelector("span").textContent = msg;
+    $("#phone").appendChild(t); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 2800);
   }
 
-  function openLedger(){
+  function openLog(){
     const bg = document.createElement("div"); bg.className = "sheet-bg";
-    bg.innerHTML = `<div class="sheet" role="dialog" aria-label="Ledger">
-      <div class="row"><div><div class="eyebrow">Ledger · record #0001</div><h3 style="margin-top:4px">Every event, in order</h3></div><button class="chip" id="closeLedger">Close</button></div>
-      ${S.ledger.length ? S.ledger.map(l => `<div class="ledger-row"><div class="row"><b>${esc(l.type)}</b><span class="muted small">${esc(l.at)}</span></div><span class="small muted">${esc(l.detail)}</span><span class="mono" style="color:var(--gold-soft)">tx ${short(l.hash)} · block ${l.block.toLocaleString("en-US")}</span></div>`).join("") : `<p class="muted">Nothing yet. Start in the Athlete studio.</p>`}
-      <p class="small muted" style="margin:0">Prototype: events are simulated in your browser, not written to a live network.</p>
+    bg.innerHTML = `<div class="sheet" role="dialog" aria-label="Record log">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px"><div><div class="eyebrow">Record log · ${SERIAL}</div><h3 style="margin-top:6px;font-family:var(--serif);font-weight:400;font-size:22px">Every event, in order</h3></div><button class="link" id="closeLog">Close</button></div>
+      <div>${S.ledger.length ? S.ledger.map(l => `<div class="lrow"><div style="display:flex;justify-content:space-between;gap:10px"><b>${esc(l.type)}</b><span class="small muted">${esc(l.at)}</span></div><span class="small muted">${esc(l.detail)}</span><span class="mono" style="color:var(--gold-d)">tx ${short(l.hash)} · block ${l.block.toLocaleString("en-US")}</span></div>`).join("") : `<p class="muted">Nothing yet. Start in the Athlete studio.</p>`}</div>
+      <p class="small muted">Demo: events are simulated in your browser, not written to a live network.</p>
     </div>`;
     $("#phone").appendChild(bg);
-    const close = () => bg.remove();
-    bg.addEventListener("click", e => { if(e.target === bg) close(); });
-    $("#closeLedger", bg).addEventListener("click", close);
+    bg.addEventListener("click", e => { if (e.target === bg) bg.remove(); });
+    $("#closeLog", bg).addEventListener("click", () => bg.remove());
   }
 
-  document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => { if(S.busy) return; S.side = b.dataset.side; render(); }));
-  $("#ledgerBtn").addEventListener("click", openLedger);
-  $("#restartBtn").addEventListener("click", () => { S = fresh(); $("#ledgerCount").textContent = "0"; const s = $(".sheet-bg"); if(s) s.remove(); render(); });
-  render();
+  // ================= deep link: scanned tag =================
+  function handleHash(){
+    if (/^#r\/PRV-0001/i.test(location.hash)){
+      if (!S.minted) quickMint();
+      if (!S.bought){ S.bought = true; }
+      if (!S.scanned){ S.scanned = true; S.timeline.push({title:"Verified by tag scan", sub:"Authentic · " + stamp(), hash:hex(32)}); log("Tag scanned", SERIAL + " · authentic"); }
+      S.scannedVisit = true; S.side = "fan"; S.f = "record"; lastDir = 0; render();
+      try { history.replaceState(null, "", location.pathname); } catch(e){}
+      return true;
+    }
+    return false;
+  }
+
+  // ================= boot =================
+  document.querySelectorAll(".mode button").forEach(b => b.addEventListener("click", () => { if (busy) return; S.scannedVisit = false; lastDir = b.dataset.side === "fan" ? 1 : -1; S.side = b.dataset.side; render(); }));
+  $("#tabs").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    if (busy) return; S.scannedVisit = false; const t = b.dataset.tab;
+    go("fan", t === "drop" ? (S.bought && !S.scanned ? "arrived" : "drop") : t === "scan" ? "scan" : "collection");
+  }));
+  $("#ledgerBtn").addEventListener("click", openLog);
+  $("#restartBtn").addEventListener("click", () => { if (busy) return; S = fresh(); try { localStorage.removeItem(STORE_KEY); } catch(e){} const s = $(".sheet-bg"); if (s) s.remove(); lastDir = -1; render(); });
+  const sq = qrDataURL(RECORD_URL, 4); if (sq) $("#sideQr").innerHTML = `<img src="${sq}" alt="QR code that opens record ${SERIAL}" width="84" height="84">`;
+  window.addEventListener("hashchange", handleHash);
+  if (!handleHash()) render();
 })();
 </script>
 </body>

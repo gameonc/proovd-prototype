@@ -322,9 +322,9 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     <p>Follow a signed jersey from the athlete's hands to a collector's, then to the next one. Use the phone on the right.</p>
     <ol class="steps-list">
       <li><i>01</i><span><b>Tokenize.</b> Verify the athlete, document the item, bind its tag, create the record.</span></li>
-      <li><i>02</i><span><b>Buy.</b> See exactly where the money goes: 70% to the athlete.</span></li>
-      <li><i>03</i><span><b>Verify.</b> Scan the collar tag. The record moves to the new owner.</span></li>
-      <li><i>04</i><span><b>Resell.</b> The record travels with the jersey. The athlete earns 5%.</span></li>
+      <li><i>02</i><span><b>Buy.</b> Explore an illustrative purchase and athlete payout.</span></li>
+      <li><i>03</i><span><b>Verify.</b> Check the delivered item, then accept ownership.</span></li>
+      <li><i>04</i><span><b>Resell.</b> Review, ship and accept before the record and sample payout update.</span></li>
     </ol>
     <div class="qr-box"><div id="sideQr"></div><p class="muted">Point your phone camera here to open this jersey's record, exactly as a collector would by scanning its tag.</p></div>
     <p class="small muted">Demo with sample data. Payments, identity checks and record writes are simulated.</p>
@@ -473,8 +473,8 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       ${photo("tag","","The PROOVD tag sewn inside a jersey collar")}
       <span class="target" aria-hidden="true"><i></i></span><span class="beam2" aria-hidden="true"></span>
       <div class="eyebrow">A signed jersey · No. 25</div>
-      <h2>Is it <span>real?</span></h2>
-      <p class="muted">Every PROOVD item carries a tag. One scan answers the question.</p>
+      <h2>One jersey.<br><span>Its story.</span></h2>
+      <p class="muted">Open a sample item record. Explore the story, evidence and collecting journey.</p>
       <button class="btn" id="introScan">Scan the tag</button>
       <button class="skip" id="introSkip">Skip to the full demo</button>
     </div>`;
@@ -569,7 +569,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         ${!S.minted ? `<button class="btn" data-go="athlete:verify">Tokenize this item ${I.arrow}</button>`
           : !S.bought ? `<button class="btn" data-go="fan:drop">Buy it as a collector ${I.arrow}</button>`
           : !S.resold ? `<button class="btn" data-go="fan:${S.scanned?"resell":"arrived"}">Continue as the collector ${I.arrow}</button>`
-          : `<p class="muted">The jersey changed hands twice. The record followed it both times, and Cady was paid both times. No re-authentication needed.</p>
+          : `<p class="muted">Both demo handoffs are complete. Item checks and buyer acceptance came before the record and illustrative athlete payouts updated.</p>
              <button class="btn" data-go="fan:record">View the record ${I.arrow}</button><button class="link center" id="again">Run the demo again</button>`}`;
     }
     return "";

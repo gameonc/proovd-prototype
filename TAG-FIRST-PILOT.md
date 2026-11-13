@@ -69,3 +69,7 @@ Courtyard's public help center currently says new vault submissions are paused. 
 
 ## Integration
 This implementation extends PR #2; it does not replace Claude's visual work. The public website audit is PR #3. Updating index.html does not update demo.getproovd.com: the production Cloudflare Worker embeds a separate HTML payload. Deploy only the reviewed combined revision and preserve the current homepage. A separate preview may be used to review this pilot without changing production.
+
+## Preview verification
+Preview: https://proovd-tag-first-preview.clalanne.workers.dev/
+Manually exercised in the cloud browser: public record, sample account, purchase, delivery, tag check, explicit acceptance, resale review, dispute/reload/resolution, shipping, delivery, buyer acceptance and final payout breakdown. That browser pass supplements the handler tests; the automated multi-viewport suite still has not run in this environment.

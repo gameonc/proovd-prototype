@@ -43,11 +43,30 @@ img{display:block;max-width:100%}
 .qr-box p{font-size:13px}
 .back{color:var(--bone);font-size:13px;text-decoration:none;border-bottom:1px solid var(--bone);align-self:flex-start;padding-bottom:2px}
 .phone{width:390px;height:min(844px,calc(100dvh - 64px));border-radius:46px;background:var(--ink);overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 0 0 1px #2a2a24,0 0 0 9px #121310,0 0 0 10px #2a2a24,0 40px 90px rgba(0,0,0,.7)}
+@media (min-width:901px) and (max-height:900px){
+  .stage{padding-block:20px;gap:56px}
+  .side{gap:14px}
+  .side h1{font-size:40px}
+  .steps-list li{padding:8px 0;font-size:13px}
+  .qr-box{padding:10px}
+  .phone{height:min(844px,calc(100dvh - 40px))}
+}
+@media (min-width:901px) and (max-height:760px){
+  .side h1{font-size:34px}
+  .steps-list{display:none}
+}
 @media (max-width:900px){
   .side{display:none}
-  .stage{display:block;padding:0}
+  .stage{display:flex;align-items:center;justify-content:center;padding:24px}
   .stage::before{display:none}
+  .phone{width:min(430px,100%)}
+}
+@media (max-width:600px){
+  .stage{display:block;padding:0}
   .phone{width:100%;height:100dvh;border-radius:0;box-shadow:none}
+}
+@media (max-height:420px){
+  .holo-title,.holo-hint{display:none}
 }
 
 /* ---------- app chrome ---------- */
@@ -222,9 +241,9 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 .holo-title span{color:var(--gold)}
 .holo-scene{flex:1;min-height:0;display:grid;place-items:center;perspective:1100px;container-type:size;touch-action:none}
 .holo-enter{display:grid;place-items:center;transform-style:preserve-3d}
-.holo-bg.reveal .holo-enter{animation:holoIn 1.25s var(--ease) both}
+.holo-bg.reveal .holo-enter{animation:holoIn 1.25s .25s var(--ease) both}
 @keyframes holoIn{0%{opacity:0;transform:translateY(60px) scale(.55) rotateY(-210deg)}35%{opacity:1}100%{opacity:1;transform:none}}
-.holo-card{width:min(78vw,300px);width:min(78cqw,70cqh,310px);aspect-ratio:5/7;position:relative;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));cursor:pointer;-webkit-tap-highlight-color:transparent;will-change:transform}
+.holo-card{width:min(78vw,300px);width:min(88cqw,70cqh,350px);aspect-ratio:5/7;position:relative;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));cursor:pointer;-webkit-tap-highlight-color:transparent;will-change:transform}
 .holo-card::after{content:"";position:absolute;left:8%;right:8%;bottom:-9%;height:8%;background:radial-gradient(ellipse,rgba(201,173,101,.5),transparent 70%);filter:blur(10px);transform:translateZ(-40px)}
 .holo-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .8s var(--ease)}
 .holo-card.flipped .holo-inner{transform:rotateY(180deg)}
@@ -233,7 +252,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 .face .art{position:absolute;inset:0}
 .face .art .photo{position:absolute;inset:0;border:0}
 .face .art .photo:hover img.in{transform:none}
-.face .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,10,8,.55) 0%,transparent 22%,transparent 52%,rgba(9,10,8,.94) 86%)}
+.face .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,10,8,.6) 0%,transparent 22%,transparent 42%,rgba(9,10,8,.9) 68%,rgba(9,10,8,.97) 100%)}
 .foil{position:absolute;inset:0;pointer-events:none;mix-blend-mode:color-dodge;opacity:.26;-webkit-mask-image:linear-gradient(112deg,transparent 18%,#000 42%,#000 58%,transparent 82%);mask-image:linear-gradient(112deg,transparent 18%,#000 42%,#000 58%,transparent 82%);-webkit-mask-size:220% 100%;mask-size:220% 100%;-webkit-mask-position:var(--px,50%) 0;mask-position:var(--px,50%) 0;background-image:repeating-linear-gradient(112deg,hsl(340 95% 62%) 0%,hsl(40 98% 60%) 6%,hsl(120 80% 58%) 12%,hsl(190 95% 60%) 18%,hsl(255 95% 70%) 24%,hsl(340 95% 62%) 30%);background-size:260% 260%;background-position:var(--px,50%) var(--py,50%)}
 .foil.lines{mix-blend-mode:overlay;opacity:.4;-webkit-mask-image:none;mask-image:none;background-image:repeating-linear-gradient(112deg,rgba(255,255,255,.22) 0 1px,transparent 1px 5px);background-size:auto;background-position:calc(var(--px,50%) * .4) 0}
 .glare{position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;background:radial-gradient(circle at var(--gx,50%) var(--gy,30%),rgba(255,255,255,.75),rgba(255,255,255,.12) 32%,transparent 58%)}
@@ -242,6 +261,10 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 .face .f-top .mono{color:var(--bone);font-size:10px;letter-spacing:.14em}
 .face .f-bot{position:relative;z-index:2;margin-top:auto;padding:14px;display:flex;flex-direction:column;gap:3px}
 .face .f-name{font-family:var(--serif);font-size:21px;line-height:1.1}
+.face .f-bot .muted{color:var(--bone)}
+.face .f-bot,.face .f-top{text-shadow:0 1px 6px rgba(0,0,0,.8)}
+.holo-bg.reveal .seal{animation:sealPop .7s 1.6s var(--ease) both}
+@keyframes sealPop{0%{transform:scale(0) rotate(-90deg);opacity:0}60%{transform:scale(1.25)}100%{transform:none;opacity:1}}
 .face .f-row{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-top:8px}
 .seal{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;color:var(--ink);background:conic-gradient(from calc(var(--sa,0) * 1deg),hsl(340 90% 68%),hsl(45 95% 62%),hsl(140 75% 62%),hsl(195 90% 62%),hsl(260 90% 72%),hsl(340 90% 68%));box-shadow:inset 0 0 0 2px rgba(255,255,255,.55),0 0 14px rgba(201,173,101,.45)}
 .seal svg{width:22px;height:22px}
@@ -258,9 +281,9 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
 .lrow{border-bottom:1px solid var(--line);padding:11px 0;display:flex;flex-direction:column;gap:3px}
 .lrow b{font-size:13.5px}
-.toast{position:absolute;left:20px;right:20px;top:calc(104px + env(safe-area-inset-top,0px));z-index:30;background:var(--bone);color:var(--ink);padding:12px 14px;font-size:13.5px;font-weight:600;display:flex;gap:10px;align-items:center;animation:drop .35s var(--ease) both}
+.toast{position:absolute;left:20px;right:20px;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--bone);color:var(--ink);padding:12px 14px;font-size:13.5px;font-weight:600;display:flex;gap:10px;align-items:center;animation:drop .35s var(--ease) both}
 .toast svg{width:16px;height:16px;color:#2d7a4d;flex:none}
-@keyframes drop{from{opacity:0;transform:translateY(-10px)}}
+@keyframes drop{from{opacity:0;transform:translateY(10px)}}
 .banner-scan{border:1px solid rgba(134,199,160,.4);background:rgba(134,199,160,.08);padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
 .banner-scan svg{width:18px;height:18px;color:var(--ok);flex:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -366,7 +389,8 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       bought:false, scanned:false, resold:false,
       story:STORY.join(" "), resalePrice:1200,
       tagId:null, tokenId:null, recordHash:null, block:null,
-      ledger:[], timeline:[], earnings:{primary:0, royalty:0}
+      ledger:[], timeline:[], earnings:{primary:0, royalty:0},
+      base: 8412100 + (parseInt(hex(2),16) % 9000)
     };
   }
   const ORDER_A = ["home","verify","document","tag","terms","mint","dash"];
@@ -381,17 +405,16 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       if (!ORDER_A.includes(v.a) || !ORDER_F.includes(v.f) || (v.side !== "athlete" && v.side !== "fan")) return null;
       delete v.scannedVisit;
       for (const k of ["tagId","tokenId","recordHash"]) if (v[k] != null) v[k] = String(v[k]).replace(/[^A-Za-z0-9-]/g, "").slice(0, 80);
-      v.block = Number(v.block) || null; v.resalePrice = [900,1200,1500].includes(v.resalePrice) ? v.resalePrice : 1200;
+      v.block = Number(v.block) || null; v.base = Number(v.base) || (v.block ? v.block - 20 : fresh().base); v.resalePrice = [900,1200,1500].includes(v.resalePrice) ? v.resalePrice : 1200;
       v.earnings = {primary: Number(v.earnings.primary) || 0, royalty: Number(v.earnings.royalty) || 0};
       return Object.assign(fresh(), v);
     } catch(e){ return null; }
   }
   function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e){} }
 
-  const newBlock = () => 8412100 + (parseInt(hex(2),16) % 9000);
+  const nextBlock = () => S.base + S.ledger.length*4 + 1;
   function log(type, detail, block){
-    const base = S.block || 8412000;
-    S.ledger.unshift({type, detail, hash:hex(32), block: block || base + S.ledger.length*4 + 1, at: stamp()});
+    S.ledger.unshift({type, detail, hash:hex(32), block: block || nextBlock(), at: stamp()});
     $("#ledgerCount").textContent = S.ledger.length;
   }
 
@@ -508,7 +531,8 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         ${!S.minted ? `<button class="btn" data-go="athlete:verify">Tokenize this item ${I.arrow}</button>`
           : !S.bought ? `<button class="btn" data-go="fan:drop">Buy it as a collector ${I.arrow}</button>`
           : !S.resold ? `<button class="btn" data-go="fan:${S.scanned?"resell":"arrived"}">Continue as the collector ${I.arrow}</button>`
-          : `<p class="muted">The jersey changed hands twice. The record followed it both times, and Cady was paid both times. No re-authentication needed.</p>`}`;
+          : `<p class="muted">The jersey changed hands twice. The record followed it both times, and Cady was paid both times. No re-authentication needed.</p>
+             <button class="btn" data-go="fan:record">View the record ${I.arrow}</button><button class="link center" id="again">Run the demo again</button>`}`;
     }
     return "";
   }
@@ -687,6 +711,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       S.tagId = "CHIP-" + hex(3).toUpperCase(); S.tagged = true; busy = false;
       log("Tag bound", S.tagId + " → " + SERIAL); lastDir = 0; render();
     });
+    on("again", () => $("#restartBtn").click());
     on("mintBtn", () => { go("athlete","mint"); runMint(); });
     on("skipMint", () => { quickMint(); toast("Finished record " + SERIAL + " loaded"); go("fan","drop"); });
     on("playStory", e => playStory(el, e.currentTarget));
@@ -730,20 +755,22 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   function quickMint(){
     if (!S.tagId) S.tagId = "CHIP-" + hex(3).toUpperCase();
     S.verified = S.documented = S.tagged = true;
-    S.tokenId = SERIAL + "-" + hex(3).toUpperCase(); S.recordHash = hex(32); S.block = S.block || newBlock();
+    S.tokenId = SERIAL + "-" + hex(3).toUpperCase(); S.recordHash = hex(32);
     S.minted = true;
     S.timeline = [{title:"Created by Cady Lalanne", sub:"Tokenized · 1 of 1 · " + stamp(), hash:S.recordHash}];
     if (!S.ledger.some(l => l.type === "Record created")){
       if (!S.ledger.length){ log("Athlete verified","Cady Lalanne · identity, right to sell, NIL permission"); log("Evidence sealed","4 photos · signature · story"); log("Tag bound", S.tagId + " → " + SERIAL); }
+      S.block = S.block || nextBlock();
       log("Record created", S.tokenId + " · 1 of 1", S.block);
     }
+    S.block = S.block || nextBlock();
   }
 
   async function runMint(){
     if (busy) return; busy = true;
     const c = $("#console"), bar = $("#mintBar"); if (!c){ busy = false; return; }
     const line = (t, k="") => { const d = document.createElement("div"); d.className = k; d.textContent = t; c.appendChild(d); while (c.children.length > 9) c.removeChild(c.firstChild); };
-    S.block = S.block || newBlock(); const blk = S.block.toLocaleString("en-US");
+    S.block = S.block || nextBlock(); const blk = S.block.toLocaleString("en-US");
     const steps = [
       ["› hashing 4 photos + signature",""],["  sha256 " + hex(12),""],
       ["› sealing story + athlete attestation",""],["  sha256 " + hex(12),""],
@@ -858,7 +885,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     }
     raf = requestAnimationFrame(frame);
 
-    const flip = () => { askMotion(); card.classList.toggle("flipped"); $("#holoHint", bg).textContent = card.classList.contains("flipped") ? "The record lives on the back · tap to flip" : "Tilt or drag · tap the card to flip"; };
+    const flip = () => { askMotion(); card.classList.toggle("flipped"); $("#holoHint", bg).textContent = card.classList.contains("flipped") ? "Tap to flip back" : "Tilt or drag · tap the card to flip"; };
     card.addEventListener("click", flip);
     card.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); flip(); } });
     const onKey = e => { if (e.key === "Escape") close(); };

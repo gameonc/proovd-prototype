@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "status": "intake_pending",
+  "itemId": "PRV-PILOT-0001",
+  "isDemo": false,
+  "saleEnabled": false,
+  "athleteName": "Cady Lalanne",
+  "itemDescription": null,
+  "eventOrSeasonClaim": null,
+  "claimSource": null,
+  "ownershipAttestationReference": null,
+  "publicStory": null,
+  "evidence": [],
+  "tag": {"publicRecordUrl": null, "provisioningStatus": "not_started", "attachmentEvidenceReference": null},
+  "verification": {"status": "pending", "reviewerId": null, "reviewedAt": null},
+  "custody": {"status": "unconfirmed", "lastVerifiedAt": null},
+  "commercialTerms": {"currency": "USD", "priceMinor": null, "athleteShareBps": null, "platformShareBps": null},
+  "walletProvider": null,
+  "network": null,
+  "tokenContract": null,
+  "tokenId": null
+}

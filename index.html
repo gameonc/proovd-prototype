@@ -274,6 +274,23 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 .face.back .kv{padding:7px 0;font-size:12px}
 .face.back .foil{opacity:.16}
 .holo-hint{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+/* ---------- cold open: scan first ---------- */
+.phone.is-intro .mode,.phone.is-intro .foot,.phone.is-intro .tabs{display:none}
+.intro{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;gap:14px;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px));overflow:hidden}
+.intro .photo{position:absolute;inset:0 0 36% 0;border:0}
+.intro .photo::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(9,10,8,.3) 0%,rgba(9,10,8,0) 25%,rgba(9,10,8,0) 62%,rgba(9,10,8,1) 100%)}
+.intro > :not(.photo){position:relative;z-index:2}
+.intro h2{font-size:38px}
+.intro .target{position:absolute;z-index:2;left:50%;top:32%;width:132px;height:132px;translate:-50% -50%;pointer-events:none}
+.intro .target::before,.intro .target::after{content:"";position:absolute;inset:0;border:1.5px solid var(--gold);border-radius:50%;opacity:0;animation:ping 2.2s ease-out infinite}
+.intro .target::after{animation-delay:1.1s}
+@keyframes ping{0%{transform:scale(.35);opacity:.95}100%{transform:scale(1.25);opacity:0}}
+.intro .target i{position:absolute;left:50%;top:50%;width:14px;height:14px;translate:-50% -50%;border-radius:50%;background:var(--gold);box-shadow:0 0 18px 4px rgba(201,173,101,.7)}
+.intro.scanning .target::before,.intro.scanning .target::after{animation-duration:.6s}
+.intro .beam2{position:absolute;z-index:2;left:0;right:0;top:8%;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);box-shadow:0 0 22px 6px rgba(201,173,101,.45);opacity:0}
+.intro.scanning .beam2{opacity:1;animation:beam2 1.25s ease-in-out both}
+@keyframes beam2{from{top:6%}to{top:60%}}
+.intro .skip{align-self:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:6px}
 /* sheet + toast */
 .sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;z-index:20;animation:fadein .2s}
 @keyframes fadein{from{opacity:0}}
@@ -384,7 +401,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   // ================= state =================
   function fresh(){
     return {
-      side:"athlete", a:"home", f:"drop", scannedVisit:false,
+      side:"athlete", a:"home", f:"drop", scannedVisit:false, intro:true,
       verified:false, documented:false, tagged:false, minted:false,
       bought:false, scanned:false, resold:false,
       story:STORY.join(" "), resalePrice:1200,
@@ -403,7 +420,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       const v = JSON.parse(localStorage.getItem(STORE_KEY));
       if (!v || typeof v !== "object" || !Array.isArray(v.ledger) || !Array.isArray(v.timeline) || !v.earnings || typeof v.earnings !== "object") return null;
       if (!ORDER_A.includes(v.a) || !ORDER_F.includes(v.f) || (v.side !== "athlete" && v.side !== "fan")) return null;
-      delete v.scannedVisit;
+      delete v.scannedVisit; v.intro = v.intro === true;
       for (const k of ["tagId","tokenId","recordHash"]) if (v[k] != null) v[k] = String(v[k]).replace(/[^A-Za-z0-9-]/g, "").slice(0, 80);
       v.block = Number(v.block) || null; v.base = Number(v.base) || (v.block ? v.block - 20 : fresh().base); v.resalePrice = [900,1200,1500].includes(v.resalePrice) ? v.resalePrice : 1200;
       v.earnings = {primary: Number(v.earnings.primary) || 0, royalty: Number(v.earnings.royalty) || 0};
@@ -429,11 +446,12 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 
   function render(){
     document.querySelectorAll(".mode button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.side === S.side)));
-    const tabs = $("#tabs"); tabs.hidden = !(S.side === "fan" && S.minted);
+    const tabs = $("#tabs"); tabs.hidden = !!S.intro || !(S.side === "fan" && S.minted);
     const tabFor = {drop:"drop",checkout:"drop",arrived:"drop",scan:"scan",record:"collection",collection:"collection",resell:"collection",sold:"collection"};
     tabs.querySelectorAll("button").forEach(b => b.setAttribute("aria-current", S.side === "fan" && tabFor[S.f] === b.dataset.tab ? "page" : "false"));
     const el = $("#screen");
-    el.innerHTML = S.side === "athlete" ? athleteView() : fanView();
+    $("#phone").classList.toggle("is-intro", !!S.intro);
+    el.innerHTML = S.intro ? introView() : S.side === "athlete" ? athleteView() : fanView();
     el.classList.remove("enter","enter-back"); void el.offsetWidth; el.classList.add(lastDir < 0 ? "enter-back" : "enter");
     el.scrollTop = 0;
     $("#ledgerCount").textContent = S.ledger.length;
@@ -441,6 +459,19 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   }
   const progress = n => `<div class="progress" aria-label="Step ${n} of 5">${[1,2,3,4,5].map(i => `<span class="${i<=n?"on":""}"></span>`).join("")}</div>`;
   const check = (t, s, state) => `<div class="check ${state||""}"><div class="tick">${I.check}</div><div><b>${t}</b><small>${s}</small></div></div>`;
+
+  // ---------- cold open ----------
+  function introView(){
+    return `<div class="intro" id="intro">
+      ${photo("tag","","The PROOVD tag sewn inside a jersey collar")}
+      <span class="target" aria-hidden="true"><i></i></span><span class="beam2" aria-hidden="true"></span>
+      <div class="eyebrow">A signed jersey · No. 25</div>
+      <h2>Is it <span>real?</span></h2>
+      <p class="muted">Every PROOVD item carries a tag. One scan answers the question.</p>
+      <button class="btn" id="introScan">Scan the tag</button>
+      <button class="skip" id="introSkip">Skip to the full demo</button>
+    </div>`;
+  }
 
   // ---------- athlete ----------
   function athleteView(){
@@ -711,6 +742,16 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       S.tagId = "CHIP-" + hex(3).toUpperCase(); S.tagged = true; busy = false;
       log("Tag bound", S.tagId + " → " + SERIAL); lastDir = 0; render();
     });
+    on("introScan", async e => {
+      if (busy) return; busy = true; askMotion();
+      e.currentTarget.disabled = true; e.currentTarget.textContent = "Reading tag…";
+      el.querySelector("#intro").classList.add("scanning");
+      await wait(matchMedia("(prefers-reduced-motion: reduce)").matches ? 400 : 1300);
+      busy = false;
+      openHolo({reveal:true, preview:true, title:"Authentic. <span>Signed by Cady Lalanne.</span>", cta:"See how PROOVD makes this possible",
+        onClose: () => { S.intro = false; lastDir = 1; render(); }});
+    });
+    on("introSkip", () => { if (busy) return; S.intro = false; lastDir = 1; render(); });
     on("again", () => $("#restartBtn").click());
     on("mintBtn", () => { go("athlete","mint"); runMint(); });
     on("skipMint", () => { quickMint(); toast("Finished record " + SERIAL + " loaded"); go("fan","drop"); });
@@ -810,7 +851,9 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   }
   function openHolo(opts){
     if (closeHolo) closeHolo();
-    const owner = S.resold ? "Collector #2" : S.scannedVisit ? "Verified holder" : S.scanned ? "Collector #1" : "Cady Lalanne";
+    const owner = S.resold ? "Collector #2" : S.scannedVisit ? "Verified holder" : S.scanned ? "Collector #1" : opts.preview ? "Its collector" : "Cady Lalanne";
+    const hashShown = S.recordHash ? short(S.recordHash) : "3f9a41c2…d07be5";
+    const tagShown = S.tagId || "CHIP-A41F07";
     const bg = document.createElement("div");
     bg.className = "holo-bg" + (opts.reveal ? " reveal" : "");
     bg.setAttribute("role","dialog"); bg.setAttribute("aria-modal","true"); bg.setAttribute("aria-label","Digital twin of record " + SERIAL);
@@ -833,7 +876,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
                 <span class="eyebrow">Digital twin</span>
                 <span class="f-name">Senior Night Jersey</span>
                 <span class="small muted">Cady Lalanne · No. 25 · 2015</span>
-                <div class="f-row"><span class="mono" style="color:var(--gold)">${SERIAL}<br><span style="color:var(--muted)">${short(S.recordHash)}</span></span><span class="seal" aria-hidden="true">${I.check}</span></div>
+                <div class="f-row"><span class="mono" style="color:var(--gold)">${SERIAL}<br><span style="color:var(--muted)">${hashShown}</span></span><span class="seal" aria-hidden="true">${I.check}</span></div>
               </div>
             </div>
             <div class="face back">
@@ -844,8 +887,8 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
                 <div class="kv"><span>Record</span><span class="mono">${SERIAL}</span></div>
                 <div class="kv"><span>Signed by</span><span>Cady Lalanne</span></div>
                 <div class="kv"><span>Held by</span><span>${owner}</span></div>
-                <div class="kv"><span>Tag</span><span class="mono">${esc(S.tagId || "—")}</span></div>
-                <div class="kv"><span>Owners</span><span>${Math.max(0, S.timeline.length - 1)}</span></div>
+                <div class="kv"><span>Tag</span><span class="mono">${esc(tagShown)}</span></div>
+                <div class="kv"><span>Owners</span><span>${opts.preview ? 1 : Math.max(0, S.timeline.length - 1)}</span></div>
               </div>
             </div>
           </div>
@@ -895,6 +938,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       window.removeEventListener("deviceorientation", onTilt); document.removeEventListener("keydown", onKey);
       bg.remove(); closeHolo = null; behind.forEach(n => n.inert = false);
       try { if (opener && document.body.contains(opener)) opener.focus({preventScroll:true}); } catch(e){}
+      if (opts.onClose) opts.onClose();
     }
     closeHolo = close;
     $("#holoClose", bg).addEventListener("click", close);
@@ -911,7 +955,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       if (!S.scanned){ S.scanned = true;
         S.timeline.push({title:"Owned by Collector #1", sub:"Bought for " + money(PRICE) + " · verified by tag scan · " + stamp(), hash:hex(32)});
         log("Ownership transfer", "Cady Lalanne → Collector #1 · tag matched record"); }
-      S.scannedVisit = true; S.side = "fan"; S.f = "record"; lastDir = 0; render();
+      S.intro = false; S.scannedVisit = true; S.side = "fan"; S.f = "record"; lastDir = 0; render();
       openHolo({reveal:true, title:"This jersey is <span>authentic.</span>", cta:"View the full record"});
       try { history.replaceState(null, "", location.pathname); } catch(e){}
       return true;

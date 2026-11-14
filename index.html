@@ -323,9 +323,9 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     <p>Follow a signed jersey from the athlete's hands to a collector's, then to the next one. Use the phone on the right.</p>
     <ol class="steps-list">
       <li><i>01</i><span><b>Tokenize.</b> Verify the athlete, document the item, bind its tag, create the record.</span></li>
-      <li><i>02</i><span><b>Buy.</b> See exactly where the money goes: 70% to the athlete.</span></li>
-      <li><i>03</i><span><b>Verify.</b> Scan the collar tag. The record moves to the new owner.</span></li>
-      <li><i>04</i><span><b>Resell.</b> The record travels with the jersey. The athlete earns 5%.</span></li>
+      <li><i>02</i><span><b>Buy.</b> Explore an illustrative purchase and athlete payout.</span></li>
+      <li><i>03</i><span><b>Verify.</b> Check the delivered item, then accept ownership.</span></li>
+      <li><i>04</i><span><b>Resell.</b> Review, ship and accept before the record and sample payout update.</span></li>
     </ol>
     <div class="qr-box"><div id="sideQr"></div><p class="muted">Point your phone camera here to open this jersey's record, exactly as a collector would by scanning its tag.</p></div>
     <p class="small muted">Demo with sample data. Payments, identity checks and record writes are simulated.</p>
@@ -378,7 +378,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     "A few months later, the Spurs called my name at 55.",
     "This is my jersey from that night, signed."
   ];
-  const STORE_KEY = "proovd-demo-v3";
+  const STORE_KEY = "proovd-demo-v4-tag-first";
 
   // ================= helpers =================
   const $ = (s, r = document) => r.querySelector(s);
@@ -411,7 +411,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     return {
       side:"athlete", a:"home", f:"drop", scannedVisit:false, intro:true,
       verified:false, documented:false, tagged:false, minted:false,
-      bought:false, scanned:false, resold:false, walletReady:false,
+      bought:false, scanned:false, resold:false, walletReady:false, delivered:false, tagChecked:false, resaleStage:"none", resaleResume:null,
       story:STORY.join(" "), resalePrice:1200,
       tagId:null, tokenId:null, recordHash:null, block:null,
       ledger:[], timeline:[], earnings:{primary:0, royalty:0},
@@ -419,7 +419,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     };
   }
   const ORDER_A = ["home","verify","document","tag","terms","mint","dash"];
-  const ORDER_F = ["drop","checkout","arrived","scan","record","collection","resell","sold"];
+  const ORDER_F = ["drop","checkout","arrived","scan","record","collection","resell","handoff","sold"];
   let S = load() || fresh();
   let busy = false, lastDir = 1;
 
@@ -455,7 +455,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   function render(){
     document.querySelectorAll(".mode button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.side === S.side)));
     const tabs = $("#tabs"); tabs.hidden = !!S.intro || !(S.side === "fan" && S.minted);
-    const tabFor = {drop:"drop",checkout:"drop",arrived:"drop",scan:"scan",record:"collection",collection:"collection",resell:"collection",sold:"collection"};
+    const tabFor = {drop:"drop",checkout:"drop",arrived:"drop",scan:"scan",record:"collection",collection:"collection",resell:"collection",handoff:"collection",sold:"collection"};
     tabs.querySelectorAll("button").forEach(b => b.setAttribute("aria-current", S.side === "fan" && tabFor[S.f] === b.dataset.tab ? "page" : "false"));
     const el = $("#screen");
     $("#phone").classList.toggle("is-intro", !!S.intro);
@@ -474,8 +474,8 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       ${photo("tag","","The PROOVD tag sewn inside a jersey collar")}
       <span class="target" aria-hidden="true"><i></i></span><span class="beam2" aria-hidden="true"></span>
       <div class="eyebrow">A signed jersey · No. 25</div>
-      <h2>Is it <span>real?</span></h2>
-      <p class="muted">Every PROOVD item carries a tag. One scan answers the question.</p>
+      <h2>One jersey.<br><span>Its story.</span></h2>
+      <p class="muted">Open a sample item record. Explore the story, evidence and collecting journey.</p>
       <button class="btn" id="introScan">Scan the tag</button>
       <button class="skip" id="introSkip">Skip to the full demo</button>
     </div>`;
@@ -533,7 +533,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         <div class="scan"><div class="ring ${S.tagged?"ok":""}" id="ring"><span class="c2"></span><span class="beam"></span>
           <div class="core">${S.tagged ? `<span class="okmark">${I.check}</span>Bound` : `${qrImg()}Tag ${SERIAL}`}</div></div></div>
         ${S.tagged
-          ? `<div class="list"><div class="kv"><span>Tag</span><span class="mono">${S.tagId}</span></div><div class="kv"><span>Chip signature</span><span class="okc">Valid · clones fail</span></div></div><button class="btn" data-go="athlete:terms">Continue ${I.arrow}</button>`
+          ? `<div class="list"><div class="kv"><span>Tag</span><span class="mono">${S.tagId}</span></div><div class="kv"><span>Chip signature</span><span class="okc">Demo check only</span></div></div><button class="btn" data-go="athlete:terms">Continue ${I.arrow}</button>`
           : `<button class="btn" id="tapTag">Scan tag</button>`}`;
 
       case "terms": return `
@@ -570,7 +570,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         ${!S.minted ? `<button class="btn" data-go="athlete:verify">Tokenize this item ${I.arrow}</button>`
           : !S.bought ? `<button class="btn" data-go="fan:drop">Buy it as a collector ${I.arrow}</button>`
           : !S.resold ? `<button class="btn" data-go="fan:${S.scanned?"resell":"arrived"}">Continue as the collector ${I.arrow}</button>`
-          : `<p class="muted">The jersey changed hands twice. The record followed it both times, and Cady was paid both times. No re-authentication needed.</p>
+          : `<p class="muted">Both demo handoffs are complete. Item checks and buyer acceptance came before the record and illustrative athlete payouts updated.</p>
              <button class="btn" data-go="fan:record">View the record ${I.arrow}</button><button class="link center" id="again">Run the demo again</button>`}`;
     }
     return "";
@@ -607,7 +607,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           <div class="kv"><span>Record</span><span class="mono">${SERIAL}</span></div>
           <div class="kv"><span>Athlete royalty</span><span>Proposed 5% on eligible PROOVD resales</span></div>
         </div>
-        ${S.bought ? `<button class="btn" data-go="fan:record">${S.resold ? "Sold · view record" : "You own this · view record"} ${I.arrow}</button>`
+        ${S.bought ? `<button class="btn" data-go="fan:record">${S.resold ? "Sold · view record" : "Purchase · view record"} ${I.arrow}</button>`
           : `<div class="price"><b>${money(PRICE)}</b><span class="small muted">Ships with its PROOVD tag</span></div><button class="btn" data-go="fan:checkout">Buy now</button>`}`;
 
       case "checkout":
@@ -633,10 +633,10 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         <p class="small muted" style="text-align:center">Demo checkout and wallet. No money moves. Splits are illustrative; fees, shipping and taxes are not modeled.</p>`;
 
       case "arrived": return `
-        <div><div class="eyebrow">Delivered</div><h2>Your jersey <span>arrived.</span></h2></div>
+        <div><div class="eyebrow">Demo delivery</div><h2>${S.delivered ? `Your jersey <span>arrived.</span>` : `On its way. <span>Still connected.</span>`}</h2></div>
         ${photo("box","hero","Jersey arriving in a black PROOVD presentation box")}
-        <p class="muted">Before you frame it, scan the collar tag to confirm it's the jersey on record ${SERIAL}. In the real product the record moves only after an authorized purchase, never from a scan alone.</p>
-        <button class="btn" data-go="fan:scan">Verify my jersey ${I.arrow}</button>`;
+        <p class="muted">Your sample order is reserved. Delivery, item checks and acceptance come before the record transfer and illustrative payout.</p>
+        ${S.delivered ? `<button class="btn" data-go="fan:scan">Check my jersey ${I.arrow}</button>` : `<button class="btn" id="deliverPrimary">Simulate delivery ${I.arrow}</button>`}`;
 
       case "scan":
         if (!S.bought) return `
@@ -644,17 +644,19 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           ${photo("tap","wide","Phone scanning the collar tag")}
           <p class="muted">Buy the drop first, then verify it here when it arrives. Or scan the QR on the desktop page with your real phone.</p>
           <button class="btn" data-go="fan:drop">Go to the drop ${I.arrow}</button>`;
+        if (!S.delivered) return `<div><div class="eyebrow">Delivery pending</div><h2>Your record <span>stays connected.</span></h2></div><p class="muted">Confirm delivery before checking the item and accepting it.</p><button class="btn" data-go="fan:arrived">View delivery</button>`;
         return `
         ${photo("tap","wide short","Phone scanning the PROOVD tag in the collar")}
-        <div><div class="eyebrow">Verify</div><h2>${S.scanned ? `<span>Authentic.</span>` : `Scan the tag <span>in the collar.</span>`}</h2></div>
+        <div><div class="eyebrow">Verify</div><h2>${S.scanned ? `<span>In your collection.</span>` : `Scan the tag <span>in the collar.</span>`}</h2></div>
         ${S.scanned ? `
           <div class="checks">
-            ${check("Tag signature valid", "Chip " + S.tagId + " is genuine", "done")}
-            ${check("Matches " + SERIAL, "Photos, signature and story on file", "done")}
-            ${check("Signed by Cady Lalanne", "Verified athlete · NIL permission on file", "done")}
+            ${check("Sample tag matched", "Simulated check for " + S.tagId, "done")}
+            ${check("Matches " + SERIAL, "Illustrative photos, signature and story", "done")}
+            ${check("Signed by Cady Lalanne", "Illustrative athlete attestation", "done")}
             ${check(S.resold ? "Ownership moved to Collector #2" : "Ownership moved to you", S.resold ? "You resold it · transfer written to the record" : "Transfer written to the record", "done")}
           </div>
           <button class="btn" data-go="fan:record">View the full record ${I.arrow}</button>`
+        : S.tagChecked ? `<p class="muted">Sample tag matched. Compare the item with its record, then confirm receipt. This action completes the demo purchase.</p><button class="btn" id="acceptPrimary">Accept item · add to collection</button>`
         : `<div class="scan"><div class="ring" id="ring2"><span class="c2"></span><span class="beam"></span><div class="core">${qrImg()}Hold steady</div></div></div>
           <button class="btn" id="scanBtn">Scan tag</button>`}`;
 
@@ -677,13 +679,15 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           : S.scanned ? `<button class="btn" data-go="fan:resell">Resell this jersey</button>` : `<button class="btn" data-go="fan:scan">Verify my jersey ${I.arrow}</button>`}`;
 
       case "collection": return `
-        <div><div class="eyebrow">My collection</div><h2>${S.resold ? `Sold <span>items</span>` : S.bought ? `1 verified <span>item</span>` : `Nothing <span>yet.</span>`}</h2></div>
+        <div><div class="eyebrow">My collection</div><h2>${S.resold ? `Sold <span>items</span>` : S.bought ? `1 demo <span>item</span>` : `Nothing <span>yet.</span>`}</h2></div>
         ${S.bought ? `<button data-go="fan:record" style="text-align:left;display:flex;flex-direction:column;gap:10px">
             ${photo("hero","hero","Jersey")}
-            <div style="display:flex;justify-content:space-between;width:100%;gap:10px"><div><b>Senior Night Jersey</b><div class="small muted">${S.resold ? "Sold · record moved to owner #2" : S.scanned ? "Verified · " + SERIAL : "In transit · verify on arrival"}</div></div><span class="gold">↗</span></div>
+            <div style="display:flex;justify-content:space-between;width:100%;gap:10px"><div><b>Senior Night Jersey</b><div class="small muted">${S.resold ? "Sold · record moved to owner #2" : S.scanned ? "At home · " + SERIAL : "Delivery acceptance pending"}</div></div><span class="gold">↗</span></div>
           </button>` : `<p class="muted">Items you buy show up here with their full record.</p><button class="btn" data-go="fan:drop">Browse the drop ${I.arrow}</button>`}`;
 
       case "resell": {
+        if (!S.scanned || S.resold) return `<p class="muted">Only the current demo holder can start a resale after accepting delivery.</p><button class="btn" data-go="fan:collection">View collection</button>`;
+        if (S.resaleStage !== "none") return handoffView();
         const r = S.resalePrice, roy = r*ROY, fee = r*PFEE, net = r - roy - fee;
         return `
         <div><div class="eyebrow">Resell</div><h2>Sell it. <span>The record goes too.</span></h2></div>
@@ -695,15 +699,16 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
             <div><span><i style="background:var(--gold-d)"></i>PROOVD fee · proposed 10%</span><b>${money(fee)}</b></div>
           </div></div>
         <p class="small muted">Illustrative supported resale. A real sale requires seller authorization, item verification and a physical delivery process.</p>
-        <button class="btn" id="list">List for ${money(r)}</button>`;
+        <button class="btn" id="list">Start demo resale · ${money(r)}</button>`;
       }
 
+      case "handoff": return handoffView();
       case "sold": {
         const roy = S.resalePrice*ROY;
         return `
         <div><div class="eyebrow">Sold</div><h2>Sold to <span>Collector #2.</span></h2></div>
         <div class="cert">
-          <div style="display:flex;justify-content:space-between;align-items:center"><span class="eyebrow">Settled automatically</span><span class="pill ok">${I.check}Done</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="eyebrow">Demo handoff complete</span><span class="pill ok">${I.check}Done</span></div>
           <div class="list">
             <div class="kv"><span>Sale price</span><span>${money(S.resalePrice)}</span></div>
             <div class="kv"><span>Royalty to Cady Lalanne</span><span class="gold">${money(roy)}</span></div>
@@ -712,12 +717,51 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
             <div class="kv"><span>New owner</span><span>Collector #2 · Chicago, IL</span></div>
             <div class="kv"><span>Record</span><span class="mono">${SERIAL} · updated</span></div>
           </div></div>
-        <p class="muted">This simulation updates the digital record and payout breakdown. A real resale also needs item verification and confirmed physical delivery.</p>
+        <p class="muted">Item review and buyer acceptance are complete in this simulation. The record and illustrative payout update together. No money or physical item moved.</p>
         <button class="btn" data-go="athlete:dash">See Cady's dashboard ${I.arrow}</button>
         <button class="link center" data-go="fan:record">See the updated record</button>`;
       }
     }
     return "";
+  }
+
+  // Browser-only simulation. Production must enforce these transitions on a server.
+  function handoffView(){
+    if (S.resold) return `<h2>Handoff <span>complete.</span></h2><button class="btn" data-go="fan:sold">View settlement</button>`;
+    if (!S.scanned || S.resaleStage === "none") return `<p class="muted">No resale in progress.</p><button class="btn" data-go="fan:collection">View collection</button>`;
+    const step = {
+      review:["Review the item", "The seller's authority, current condition, tag and supporting evidence need review.", "Simulate review approval"],
+      approved:["Ready for handoff", "Review passed in this demo. The jersey stays with Collector #1 until shipment.", "Simulate shipment"],
+      transit:["Jersey in transit", "The shipment is moving to Collector #2. Ownership and athlete payout remain pending.", "Simulate delivery"],
+      delivered:["Awaiting acceptance", "Collector #2 compares the delivered jersey with its record. A tag scan alone cannot complete this sale.", "Simulate buyer acceptance"],
+      disputed:["Handoff on hold", "An issue needs review. Ownership stays with Collector #1 and no resale payout is credited.", "Simulate reviewer resolution"]
+    }[S.resaleStage];
+    if (!step) return `<p>Unknown demo stage. Restart the demo.</p>`;
+    return `<div><div class="eyebrow">Supported resale · simulation</div><h2>${step[0]}</h2></div>
+      <p class="muted">${step[1]}</p>
+      <div class="list">
+        <div class="kv"><span>Item</span><span>${SERIAL}</span></div>
+        <div class="kv"><span>Recorded holder</span><span>Collector #1</span></div>
+        <div class="kv"><span>Physical location</span><span>${S.resaleStage === "transit" ? "Carrier (demo)" : S.resaleStage === "delivered" ? "Collector #2 (demo)" : S.resaleStage === "disputed" ? "Review required" : "Collector #1 (demo)"}</span></div>
+        <div class="kv"><span>Resale amount</span><span>${money(S.resalePrice)}</span></div>
+        <div class="kv"><span>Athlete payout</span><span>${money(S.resalePrice*ROY)} pending</span></div>
+      </div>
+      <p class="small muted">All steps are simulated. Real reviewer, carrier, payment and wallet services are not connected.</p>
+      <button class="btn" id="${S.resaleStage === "disputed" ? "resolveHandoff" : "advanceHandoff"}">${step[2]}</button>
+      ${S.resaleStage !== "disputed" ? `<button class="link center" id="holdHandoff">Simulate a problem · pause transfer</button>` : ""}
+      ${["review","approved"].includes(S.resaleStage) ? `<button class="link center" id="cancelHandoff">Cancel demo resale</button>` : ""}`;
+  }
+  function advanceHandoff(){
+    if (!S.scanned || S.resold || busy) return;
+    const next = {review:"approved", approved:"transit", transit:"delivered", delivered:"complete"}[S.resaleStage];
+    if (!next) return;
+    S.resaleStage = next;
+    if (next === "complete") {
+      const roy = S.resalePrice*ROY; S.resold = true; S.earnings.royalty += roy;
+      S.timeline.push({title:"Owned by Collector #2", sub:"Demo delivery accepted · " + money(S.resalePrice) + " · " + stamp(), hash:hex(32)});
+      log("Demo resale completed", "Buyer accepted item · record transferred · illustrative athlete payout " + money(roy));
+      go("fan","sold");
+    } else { log("Demo handoff: " + next, "Ownership and resale payout remain pending"); render(); }
   }
 
   function storyLines(){
@@ -738,7 +782,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   function bind(el){
     el.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { if (busy) return; const [side, scr] = b.dataset.go.split(":"); if (side === "fan") S.scannedVisit = false; go(side, scr); }));
     el.querySelectorAll("[data-twin]").forEach(b => b.addEventListener("click", () => { if (busy) return; askMotion(); openHolo({}); }));
-    el.querySelectorAll("[data-price]").forEach(b => b.addEventListener("click", () => { if (busy) return; S.resalePrice = +b.dataset.price; lastDir = 0; render(); }));
+    el.querySelectorAll("[data-price]").forEach(b => b.addEventListener("click", () => { if (busy || S.resaleStage !== "none") return; S.resalePrice = +b.dataset.price; lastDir = 0; render(); }));
     const on = (id, fn) => { const x = el.querySelector("#" + id); if (x) x.addEventListener("click", fn); };
 
     on("runVerify", async e => {
@@ -778,25 +822,47 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     on("pay", async e => {
       if (!S.walletReady || S.bought) return;
       if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Processing…"; await wait(1300);
-      S.bought = true; S.earnings.primary = PRICE*ATH; busy = false;
-      log("Primary sale", money(PRICE) + " · " + money(PRICE*ATH) + " to Cady · " + money(PRICE*(1-ATH)) + " to PROOVD");
-      toast("Demo payment: " + money(PRICE*ATH) + " goes to Cady."); go("fan","arrived");
+      S.bought = true; busy = false;
+      log("Demo order reserved", money(PRICE) + " · acceptance and payout pending");
+      go("fan","arrived");
+    });
+    on("deliverPrimary", () => {
+      if (!S.bought || S.delivered) return;
+      S.delivered = true; log("Demo delivery", "Shipment marked delivered; item acceptance pending"); go("fan","scan");
     });
     on("scanBtn", async e => {
-      if (!S.bought || S.scanned || S.resold) return;
-      if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Reading…"; askMotion();
-      const rg2 = el.querySelector("#ring2"); rg2.classList.add("live"); try { rg2.scrollIntoView({block:"center", behavior:"smooth"}); } catch(e){} await wait(1700);
-      S.scanned = true; busy = false;
-      S.timeline.push({title:"Owned by Collector #1", sub:"Bought for " + money(PRICE) + " · verified by tag scan · " + stamp(), hash:hex(32)});
-      log("Ownership transfer", "Cady Lalanne → Collector #1 · tag matched record"); lastDir = 0; render();
-      openHolo({reveal:true, title:"Authentic. <span>And now yours.</span>", cta:"See what was verified"});
+      if (!S.bought || !S.delivered || S.tagChecked || S.scanned || S.resold || busy) return;
+      busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Checking sample tag…";
+      el.querySelector("#ring2").classList.add("live"); await wait(900);
+      S.tagChecked = true; busy = false;
+      log("Demo tag check", "Tag matched; ownership unchanged until item acceptance"); render();
     });
-    on("list", async e => {
-      if (!S.bought || !S.scanned || S.resold) return;
-      if (busy) return; busy = true; e.currentTarget.disabled = true; e.currentTarget.textContent = "Matching a buyer…"; await wait(1600);
-      const roy = S.resalePrice*ROY; S.resold = true; S.earnings.royalty += roy; busy = false;
-      S.timeline.push({title:"Owned by Collector #2", sub:"Resold for " + money(S.resalePrice) + " · " + money(roy) + " royalty to Cady · " + stamp(), hash:hex(32)});
-      log("Resale settled", money(S.resalePrice) + " · " + money(roy) + " royalty paid to Cady Lalanne"); go("fan","sold");
+    on("acceptPrimary", () => {
+      if (!S.bought || !S.delivered || !S.tagChecked || S.scanned || S.resold) return;
+      S.scanned = true; S.earnings.primary = PRICE*ATH;
+      S.timeline.push({title:"Owned by Collector #1", sub:"Demo purchase accepted · " + stamp(), hash:hex(32)});
+      log("Demo purchase completed", "Delivery accepted · record transferred · illustrative athlete payout " + money(PRICE*ATH));
+      go("fan","record"); openHolo({reveal:true,title:"Your jersey. <span>Your collection.</span>",cta:"View the record"});
+    });
+    on("list", () => {
+      if (!S.scanned || S.resold || S.resaleStage !== "none" || busy) return;
+      S.resaleStage = "review"; log("Demo resale requested", "Seller authority and item evidence review pending"); go("fan","handoff");
+    });
+    on("advanceHandoff", () => advanceHandoff());
+    on("holdHandoff", () => {
+      if (!["review","approved","transit","delivered"].includes(S.resaleStage) || S.resold) return;
+      S.resaleResume = S.resaleStage; S.resaleStage = "disputed";
+      log("Demo dispute opened", "Transfer and payout paused; record remains with Collector #1"); render();
+    });
+    on("resolveHandoff", () => {
+      if (S.resaleStage !== "disputed" || !["review","approved","transit","delivered"].includes(S.resaleResume)) return;
+      S.resaleStage = S.resaleResume; S.resaleResume = null;
+      log("Demo review resolved", "Resumed previous step; no automatic payout or transfer"); render();
+    });
+    on("cancelHandoff", () => {
+      if (!["review","approved"].includes(S.resaleStage)) return;
+      S.resaleStage = "none"; S.resaleResume = null;
+      log("Demo resale cancelled", "No transfer or payout; item remains with Collector #1"); go("fan","collection");
     });
   }
 

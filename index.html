@@ -614,9 +614,9 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         if (!S.walletReady) return `
           <div><div class="eyebrow">Demo collection account</div><h2>A home for <span>your collection.</span></h2></div>
           ${photo("hero","hero","Senior Night jersey demo collectible")}
-          <p class="muted">In the planned product, sign in with email or Google to create your wallet. This preview uses a sample collector account.</p>
+          <p class="muted">In the planned product, sign in with email or Google to create your collection account. This preview uses a sample collector account.</p>
           <button class="btn" id="createDemoWallet">Continue with demo account ${I.arrow}</button>
-          <p class="small muted">No real wallet is created. No email, password or payment details are collected.</p>
+          <p class="small muted">No real account is created. No email, password or payment details are collected.</p><p class="small muted">Proposed athlete storefront membership: first 12 months free, then $99 per year. Not charged in this demo.</p>
           <button class="link center" data-go="fan:drop">Back to the jersey</button>`;
         return `
         <div><div class="eyebrow">Checkout</div><h2>One item. <span>One record.</span></h2></div>
@@ -630,7 +630,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           </div></div>
         <div class="list"><div class="kv"><span>Payment</span><span>Demo card •••• 4242</span></div><div class="kv"><span>Ship to</span><span>Miami, FL</span></div></div>
         <button class="btn" id="pay">Simulate purchase · ${money(PRICE)}</button>
-        <p class="small muted" style="text-align:center">Demo checkout and wallet. No money moves. Splits are illustrative; fees, shipping and taxes are not modeled.</p>`;
+        <p class="small muted" style="text-align:center">Demo checkout and collection account. No money moves. Splits are illustrative; fees, shipping and taxes are not modeled.</p>`;
 
       case "arrived": return `
         <div><div class="eyebrow">Demo delivery</div><h2>${S.delivered ? `Your jersey <span>arrived.</span>` : `On its way. <span>Still connected.</span>`}</h2></div>
@@ -696,7 +696,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           <div class="legend">
             <div><span><i style="background:var(--bone)"></i>You receive</span><b>${money(net)}</b></div>
             <div><span><i style="background:var(--gold)"></i>Cady's royalty · 5%</span><b class="gold">${money(roy)}</b></div>
-            <div><span><i style="background:var(--gold-d)"></i>PROOVD fee · proposed 10%</span><b>${money(fee)}</b></div>
+            <div><span><i style="background:var(--gold-d)"></i>PROOVD fee · illustrative 10%</span><b>${money(fee)}</b></div>
           </div></div>
         <p class="small muted">Illustrative supported resale. A real sale requires seller authorization, item verification and a physical delivery process.</p>
         <button class="btn" id="list">Start demo resale · ${money(r)}</button>`;
@@ -712,7 +712,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           <div class="list">
             <div class="kv"><span>Sale price</span><span>${money(S.resalePrice)}</span></div>
             <div class="kv"><span>Royalty to Cady Lalanne</span><span class="gold">${money(roy)}</span></div>
-            <div class="kv"><span>PROOVD fee · proposed 10%</span><span>${money(S.resalePrice*PFEE)}</span></div>
+            <div class="kv"><span>PROOVD fee · illustrative 10%</span><span>${money(S.resalePrice*PFEE)}</span></div>
             <div class="kv"><span>You received</span><span>${money(S.resalePrice - roy - S.resalePrice*PFEE)}</span></div>
             <div class="kv"><span>New owner</span><span>Collector #2 · Chicago, IL</span></div>
             <div class="kv"><span>Record</span><span class="mono">${SERIAL} · updated</span></div>
@@ -746,7 +746,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         <div class="kv"><span>Resale amount</span><span>${money(S.resalePrice)}</span></div>
         <div class="kv"><span>Athlete payout</span><span>${money(S.resalePrice*ROY)} pending</span></div>
       </div>
-      <p class="small muted">All steps are simulated. Real reviewer, carrier, payment and wallet services are not connected.</p>
+      <p class="small muted">All steps are simulated. Real reviewer, carrier, payment and account services are not connected.</p>
       <button class="btn" id="${S.resaleStage === "disputed" ? "resolveHandoff" : "advanceHandoff"}">${step[2]}</button>
       ${S.resaleStage !== "disputed" ? `<button class="link center" id="holdHandoff">Simulate a problem · pause transfer</button>` : ""}
       ${["review","approved"].includes(S.resaleStage) ? `<button class="link center" id="cancelHandoff">Cancel demo resale</button>` : ""}`;
@@ -817,7 +817,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     on("skipMint", () => { quickMint(); toast("Finished record " + SERIAL + " loaded"); go("fan","drop"); });
     on("playStory", e => playStory(el, e.currentTarget));
     on("createDemoWallet", () => {
-      S.walletReady = true; log("Demo account ready", "Sample collector account; no real wallet created"); render();
+      S.walletReady = true; log("Demo account ready", "Sample collector account; no real account created"); render();
     });
     on("pay", async e => {
       if (!S.walletReady || S.bought) return;

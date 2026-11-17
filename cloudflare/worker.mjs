@@ -14,12 +14,12 @@ export default {
     if (!["GET", "HEAD"].includes(request.method)) {
       return new Response("Method not allowed", { status: 405, headers: { Allow: "GET, HEAD" } });
     }
-    const demo = url.hostname === "demo.getproovd.com";
+    const demo = url.hostname === "demo.getproovd.com" || (url.hostname === "getproovd.com" && ["/demo", "/demo/", "/demo/index.html"].includes(url.pathname));
     if (url.pathname === "/robots.txt") {
       return new Response(demo ? "User-agent: *\nDisallow: /\n" : "User-agent: *\nAllow: /\n",
         { headers: { "Content-Type": "text/plain; charset=utf-8" } });
     }
-    if (url.pathname !== "/" && url.pathname !== "/index.html") {
+    if (url.pathname !== "/" && url.pathname !== "/index.html" && !["/demo", "/demo/", "/demo/index.html"].includes(url.pathname)) {
       return new Response("Not found", { status: 404 });
     }
     const upstream = await fetch(ORIGIN + (demo ? "/index.html" : "/home/index.html"), {

@@ -167,6 +167,12 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 .ring .c2::before,.ring .c2::after{content:"";position:absolute;width:22px;height:22px;border-color:var(--gold);border-style:solid}
 .ring .c2::before{top:-1px;right:-1px;border-width:2px 2px 0 0}
 .ring .c2::after{bottom:-1px;left:-1px;border-width:0 0 2px 2px}
+.flipcard{perspective:1200px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.flipcard .flip-inner{position:relative;transition:transform .6s cubic-bezier(.4,.1,.2,1);transform-style:preserve-3d}
+.flipcard.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.flip-front{display:flex;flex-direction:column}
+.flip-back{position:absolute;inset:0;transform:rotateY(180deg);background:#0e0f0d;border:1px solid var(--line);border-radius:16px;padding:18px;overflow:auto;display:flex;flex-direction:column;gap:2px}
 .ring .beam{position:absolute;left:8px;right:8px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);top:10%;opacity:0}
 .ring.live .beam{opacity:1;animation:beam 1.3s ease-in-out infinite alternate}
 @keyframes beam{to{top:88%}}
@@ -371,7 +377,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
   };
   const SERIAL = "PRV-0001";
   const RECORD_URL = "https://demo.getproovd.com/#r/" + SERIAL;
-  const PRICE = 750, ATH = 0.70, ROY = 0.05, PFEE = 0.10;
+  const PRICE = 750, ATH = 0.70, ROY = 0.05, PFEE = 0.05;
   const STORY = [
     "Senior Night at the Mullins Center, 2015.",
     "My last home game in a UMass uniform.",
@@ -411,7 +417,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     return {
       side:"athlete", a:"home", f:"drop", scannedVisit:false, intro:true,
       verified:false, documented:false, tagged:false, minted:false,
-      bought:false, scanned:false, resold:false, walletReady:false, delivered:false, tagChecked:false, resaleStage:"none", resaleResume:null,
+      bought:false, scanned:false, resold:false, walletReady:false, delivered:false, tagChecked:false, resaleStage:"none", resaleResume:null, email:null,
       story:STORY.join(" "), resalePrice:1200,
       tagId:null, tokenId:null, recordHash:null, block:null,
       ledger:[], timeline:[], earnings:{primary:0, royalty:0},
@@ -430,6 +436,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
       if (!ORDER_A.includes(v.a) || !ORDER_F.includes(v.f) || (v.side !== "athlete" && v.side !== "fan")) return null;
       delete v.scannedVisit; v.intro = v.intro === true;
       for (const k of ["tagId","tokenId","recordHash"]) if (v[k] != null) v[k] = String(v[k]).replace(/[^A-Za-z0-9-]/g, "").slice(0, 80);
+      v.email = v.email != null ? String(v.email).replace(/[^\w.@+-]/g, "").slice(0, 80) : null;
       v.block = Number(v.block) || null; v.base = Number(v.base) || (v.block ? v.block - 20 : fresh().base); v.resalePrice = [900,1200,1500].includes(v.resalePrice) ? v.resalePrice : 1200;
       v.earnings = {primary: Number(v.earnings.primary) || 0, royalty: Number(v.earnings.royalty) || 0};
       return Object.assign(fresh(), v);
@@ -614,9 +621,10 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
         if (!S.walletReady) return `
           <div><div class="eyebrow">Demo collection account</div><h2>A home for <span>your collection.</span></h2></div>
           ${photo("hero","hero","Senior Night jersey demo collectible")}
-          <p class="muted">In the planned product, sign in with email or Google to create your collection account. This preview uses a sample collector account.</p>
-          <button class="btn" id="createDemoWallet">Continue with demo account ${I.arrow}</button>
-          <p class="small muted">No real account is created. No email, password or payment details are collected.</p><p class="small muted">Proposed athlete storefront membership: first 12 months free, then $99 per year. Not charged in this demo.</p>
+          <p class="muted">In the planned product, sign in with email or Google so your collection stays saved — close the page, come back, it's still yours. This preview simulates that.</p>
+          <input id="demoEmail" type="email" inputmode="email" autocomplete="off" placeholder="you@email.com (optional, demo only)" style="width:100%;padding:14px 16px;background:#0e0f0d;border:1px solid var(--line);border-radius:12px;color:var(--bone);font:inherit">
+          <button class="btn" id="createDemoWallet">Save my collection ${I.arrow}</button>
+          <p class="small muted">Demo sign-in. Your email stays on this phone only — nothing is sent or stored by PROOVD. No password or payment details are collected.</p><p class="small muted">Proposed athlete storefront membership: first 12 months free, then $99 per year. Not charged in this demo.</p>
           <button class="link center" data-go="fan:drop">Back to the jersey</button>`;
         return `
         <div><div class="eyebrow">Checkout</div><h2>One item. <span>One record.</span></h2></div>
@@ -680,10 +688,27 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
 
       case "collection": return `
         <div><div class="eyebrow">My collection</div><h2>${S.resold ? `Sold <span>items</span>` : S.bought ? `1 demo <span>item</span>` : `Nothing <span>yet.</span>`}</h2></div>
-        ${S.bought ? `<button data-go="fan:record" style="text-align:left;display:flex;flex-direction:column;gap:10px">
-            ${photo("hero","hero","Jersey")}
-            <div style="display:flex;justify-content:space-between;width:100%;gap:10px"><div><b>Senior Night Jersey</b><div class="small muted">${S.resold ? "Sold · record moved to owner #2" : S.scanned ? "At home · " + SERIAL : "Delivery acceptance pending"}</div></div><span class="gold">↗</span></div>
-          </button>` : `<p class="muted">Items you buy show up here with their full record.</p><button class="btn" data-go="fan:drop">Browse the drop ${I.arrow}</button>`}`;
+        ${S.email ? `<p class="small muted" style="margin-top:-6px"><span class="gold">✓</span> Saved on this phone · ${esc(S.email)} · still here after you close the page</p>` : ""}
+        ${S.bought ? `<div class="flipcard" id="flipCard" role="button" tabindex="0" aria-label="Tap to flip the collectible card">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                ${photo("hero","hero","Jersey")}
+                <div style="display:flex;justify-content:space-between;width:100%;gap:10px;padding-top:10px"><div><b>Senior Night Jersey</b><div class="small muted">${S.resold ? "Sold · record moved to owner #2" : S.scanned ? "At home · " + SERIAL : "Delivery acceptance pending"}</div></div><span class="gold">⟳</span></div>
+              </div>
+              <div class="flip-face flip-back">
+                <div class="eyebrow">Record ${SERIAL}</div>
+                <div class="kv"><span>Athlete</span><span>Cady Lalanne</span></div>
+                <div class="kv"><span>Edition</span><span>Signed · 1 of 1</span></div>
+                ${S.tagId ? `<div class="kv"><span>Tag</span><span class="mono">${esc(S.tagId)}</span></div>` : ""}
+                ${S.recordHash ? `<div class="kv"><span>Record hash</span><span class="mono">${short(S.recordHash)}</span></div>` : ""}
+                <div class="kv"><span>Owner</span><span>${S.resold ? "Collector #2" : "You · Collector #1"}</span></div>
+                <p class="small muted" style="margin-top:10px">Sample record. Tap to flip back.</p>
+              </div>
+            </div>
+          </div>
+          <p class="small muted" style="text-align:center">Tap the card to flip it</p>
+          <button class="btn" id="shareBtn">Share this collectible</button>
+          <button class="link center" data-go="fan:record">View the full record ↗</button>` : `<p class="muted">Items you buy show up here with their full record.</p><button class="btn" data-go="fan:drop">Browse the drop ${I.arrow}</button>`}`;
 
       case "resell": {
         if (!S.scanned || S.resold) return `<p class="muted">Only the current demo holder can start a resale after accepting delivery.</p><button class="btn" data-go="fan:collection">View collection</button>`;
@@ -696,7 +721,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           <div class="legend">
             <div><span><i style="background:var(--bone)"></i>You receive</span><b>${money(net)}</b></div>
             <div><span><i style="background:var(--gold)"></i>Cady's royalty · 5%</span><b class="gold">${money(roy)}</b></div>
-            <div><span><i style="background:var(--gold-d)"></i>PROOVD fee · illustrative 10%</span><b>${money(fee)}</b></div>
+            <div><span><i style="background:var(--gold-d)"></i>PROOVD fee · proposed 5%</span><b>${money(fee)}</b></div>
           </div></div>
         <p class="small muted">Illustrative supported resale. A real sale requires seller authorization, item verification and a physical delivery process.</p>
         <button class="btn" id="list">Start demo resale · ${money(r)}</button>`;
@@ -712,7 +737,7 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
           <div class="list">
             <div class="kv"><span>Sale price</span><span>${money(S.resalePrice)}</span></div>
             <div class="kv"><span>Royalty to Cady Lalanne</span><span class="gold">${money(roy)}</span></div>
-            <div class="kv"><span>PROOVD fee · illustrative 10%</span><span>${money(S.resalePrice*PFEE)}</span></div>
+            <div class="kv"><span>PROOVD fee · proposed 5%</span><span>${money(S.resalePrice*PFEE)}</span></div>
             <div class="kv"><span>You received</span><span>${money(S.resalePrice - roy - S.resalePrice*PFEE)}</span></div>
             <div class="kv"><span>New owner</span><span>Collector #2 · Chicago, IL</span></div>
             <div class="kv"><span>Record</span><span class="mono">${SERIAL} · updated</span></div>
@@ -817,7 +842,19 @@ textarea:focus{outline:1px solid var(--gold);outline-offset:0}
     on("skipMint", () => { quickMint(); toast("Finished record " + SERIAL + " loaded"); go("fan","drop"); });
     on("playStory", e => playStory(el, e.currentTarget));
     on("createDemoWallet", () => {
-      S.walletReady = true; log("Demo account ready", "Sample collector account; no real account created"); render();
+      const em = el.querySelector("#demoEmail");
+      const val = em && em.value ? em.value.trim().replace(/[^\w.@+-]/g, "").slice(0, 80) : "";
+      S.email = val || "collector@sample.demo";
+      S.walletReady = true; log("Demo account ready", "Collection saved on this phone for " + S.email + " · no real account created"); render();
+    });
+    on("flipCard", e => { e.currentTarget.classList.toggle("flipped"); });
+    on("shareBtn", async e => {
+      const btn = e.currentTarget, url = "https://getproovd.com";
+      try {
+        if (navigator.share) { await navigator.share({title:"PROOVD collectible", text:"Senior Night Jersey · verified on PROOVD", url}); }
+        else { await navigator.clipboard.writeText(url); btn.textContent = "Link copied ✓"; setTimeout(() => { btn.textContent = "Share this collectible"; }, 1600); }
+        log("Share link created", "Demo link to the public record page");
+      } catch(err){}
     });
     on("pay", async e => {
       if (!S.walletReady || S.bought) return;
